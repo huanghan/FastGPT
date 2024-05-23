@@ -19,11 +19,10 @@ import { getErrText } from '@fastgpt/global/common/error/utils';
 import { useRequest } from '@fastgpt/web/hooks/useRequest';
 import Avatar from '@/components/Avatar';
 import MyModal from '@fastgpt/web/components/common/MyModal';
+import { useAppStore } from '@/web/core/app/store/useAppStore';
 import PermissionRadio from '@/components/support/permission/Radio';
 import { useTranslation } from 'next-i18next';
 import { MongoImageTypeEnum } from '@fastgpt/global/common/file/image/constants';
-import { AppContext } from '@/web/core/app/context/appContext';
-import { useContextSelector } from 'use-context-selector';
 
 const InfoModal = ({
   defaultApp,
@@ -36,7 +35,7 @@ const InfoModal = ({
 }) => {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { updateAppDetail } = useContextSelector(AppContext, (v) => v);
+  const { updateAppDetail } = useAppStore();
 
   const { File, onOpen: onOpenSelectFile } = useSelectFile({
     fileType: '.jpg,.png',
@@ -56,7 +55,7 @@ const InfoModal = ({
   // submit config
   const { mutate: saveSubmitSuccess, isLoading: btnLoading } = useRequest({
     mutationFn: async (data: AppSchema) => {
-      await updateAppDetail({
+      await updateAppDetail(data._id, {
         name: data.name,
         avatar: data.avatar,
         intro: data.intro,

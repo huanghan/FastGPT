@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import NodeCard from './render/NodeCard';
 import { NodeProps } from 'reactflow';
 import { FlowNodeItemType } from '@fastgpt/global/core/workflow/type';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -30,9 +30,8 @@ import { SmallAddIcon } from '@chakra-ui/icons';
 import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import { ReferenceValueProps } from '@fastgpt/global/core/workflow/type/io';
 import { ReferSelector, useReference } from './render/RenderInput/templates/Reference';
-import { getRefData } from '@/web/core/workflow/utils';
+import { getReferenceDataValueType } from '@/web/core/workflow/utils';
 import { isReferenceValue } from '@fastgpt/global/core/workflow/utils';
-import { AppContext } from '@/web/core/app/context/appContext';
 
 const NodeVariableUpdate = ({ data, selected }: NodeProps<FlowNodeItemType>) => {
   const { inputs = [], nodeId } = data;
@@ -40,7 +39,6 @@ const NodeVariableUpdate = ({ data, selected }: NodeProps<FlowNodeItemType>) => 
 
   const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
   const nodeList = useContextSelector(WorkflowContext, (v) => v.nodeList);
-  const appDetail = useContextSelector(AppContext, (v) => v.appDetail);
 
   const updateList = useMemo(
     () =>
@@ -84,10 +82,9 @@ const NodeVariableUpdate = ({ data, selected }: NodeProps<FlowNodeItemType>) => 
     return (
       <>
         {updateList.map((updateItem, index) => {
-          const { valueType } = getRefData({
+          const valueType = getReferenceDataValueType({
             variable: updateItem.variable,
             nodeList,
-            chatConfig: appDetail.chatConfig,
             t
           });
 

@@ -335,7 +335,7 @@ const DetailLogsModal = ({
             feedbackType={'admin'}
             showMarkIcon
             showVoiceIcon={false}
-            chatConfig={chat?.app?.chatConfig}
+            userGuideModule={chat?.app?.userGuideModule}
             appId={appId}
             chatId={chatId}
           />

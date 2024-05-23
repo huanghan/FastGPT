@@ -1,49 +1,34 @@
-import React, { Dispatch, useMemo, useTransition } from 'react';
+import React, { useMemo, useTransition } from 'react';
 import { NodeProps } from 'reactflow';
-import { Box, useTheme } from '@chakra-ui/react';
-import { FlowNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
+import { Box, Flex, Textarea, useTheme } from '@chakra-ui/react';
+import { QuestionOutlineIcon } from '@chakra-ui/icons';
+import { FlowNodeItemType, StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
+import { NodeInputKeyEnum, WorkflowIOValueTypeEnum } from '@fastgpt/global/core/workflow/constants';
+import { welcomeTextTip } from '@fastgpt/global/core/workflow/template/tip';
 
 import QGSwitch from '@/components/core/app/QGSwitch';
 import TTSSelect from '@/components/core/app/TTSSelect';
 import WhisperConfig from '@/components/core/app/WhisperConfig';
-import InputGuideConfig from '@/components/core/app/InputGuideConfig';
-import { getAppChatConfig } from '@fastgpt/global/core/workflow/utils';
+import { splitGuideModule } from '@fastgpt/global/core/workflow/utils';
 import { useTranslation } from 'next-i18next';
-import { TTSTypeEnum } from '@/web/core/app/constants';
+import { TTSTypeEnum } from '@/constants/app';
+import MyIcon from '@fastgpt/web/components/common/Icon';
+import MyTooltip from '@/components/MyTooltip';
 import NodeCard from './render/NodeCard';
 import ScheduledTriggerConfig from '@/components/core/app/ScheduledTriggerConfig';
 import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext } from '../../context';
-import { AppChatConfigType, AppDetailType, VariableItemType } from '@fastgpt/global/core/app/type';
+import { VariableItemType } from '@fastgpt/global/core/app/type';
 import { useMemoizedFn } from 'ahooks';
 import VariableEdit from '@/components/core/app/VariableEdit';
-import { AppContext } from '@/web/core/app/context/appContext';
-import WelcomeTextConfig from '@/components/core/app/WelcomeTextConfig';
-
-type ComponentProps = {
-  chatConfig: AppChatConfigType;
-  setAppDetail: Dispatch<React.SetStateAction<AppDetailType>>;
-};
+import {
+  FlowNodeOutputTypeEnum,
+  FlowNodeTypeEnum
+} from '@fastgpt/global/core/workflow/node/constant';
+import { FlowNodeOutputItemType } from '@fastgpt/global/core/workflow/type/io';
 
 const NodeUserGuide = ({ data, selected }: NodeProps<FlowNodeItemType>) => {
   const theme = useTheme();
-  const { appDetail, setAppDetail } = useContextSelector(AppContext, (v) => v);
-
-  const chatConfig = useMemo<AppChatConfigType>(() => {
-    return getAppChatConfig({
-      chatConfig: appDetail.chatConfig,
-      systemConfigNode: data,
-      isPublicFetch: true
-    });
-  }, [data, appDetail]);
-
-  const componentsProps = useMemo(
-    () => ({
-      chatConfig,
-      setAppDetail
-    }),
-    [chatConfig, setAppDetail]
-  );
 
   return (
     <>
@@ -59,24 +44,21 @@ const NodeUserGuide = ({ data, selected }: NodeProps<FlowNodeItemType>) => {
         {...data}
       >
         <Box px={4} py={'10px'} position={'relative'} borderRadius={'md'} className="nodrag">
-          <WelcomeText {...componentsProps} />
+          <WelcomeText data={data} />
           <Box pt={4}>
-            <ChatStartVariable {...componentsProps} />
+            <ChatStartVariable data={data} />
           </Box>
           <Box mt={3} pt={3} borderTop={theme.borders.base}>
-            <TTSGuide {...componentsProps} />
+            <TTSGuide data={data} />
           </Box>
           <Box mt={3} pt={3} borderTop={theme.borders.base}>
-            <WhisperGuide {...componentsProps} />
+            <WhisperGuide data={data} />
           </Box>
           <Box mt={3} pt={3} borderTop={theme.borders.base}>
-            <QuestionGuide {...componentsProps} />
+            <QuestionGuide data={data} />
           </Box>
           <Box mt={3} pt={3} borderTop={theme.borders.base}>
-            <ScheduledTrigger {...componentsProps} />
-          </Box>
-          <Box mt={3} pt={3} borderTop={theme.borders.base}>
-            <QuestionInputGuide {...componentsProps} />
+            <ScheduledTrigger data={data} />
           </Box>
         </Box>
       </NodeCard>
@@ -86,137 +68,175 @@ const NodeUserGuide = ({ data, selected }: NodeProps<FlowNodeItemType>) => {
 
 export default React.memo(NodeUserGuide);
 
-function WelcomeText({ chatConfig: { welcomeText }, setAppDetail }: ComponentProps) {
+function WelcomeText({ data }: { data: FlowNodeItemType }) {
   const { t } = useTranslation();
+  const { inputs, nodeId } = data;
   const [, startTst] = useTransition();
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+
+  const welcomeText = inputs.find((item) => item.key === NodeInputKeyEnum.welcomeText);
 
   return (
-    <Box className="nodrag">
-      <WelcomeTextConfig
-        resize={'both'}
-        defaultValue={welcomeText}
-        onChange={(e) => {
-          startTst(() => {
-            setAppDetail((state) => ({
-              ...state,
-              chatConfig: {
-                ...state.chatConfig,
-                welcomeText: e.target.value
-              }
-            }));
-          });
-        }}
-      />
-    </Box>
+    <>
+      <Flex mb={1} alignItems={'center'}>
+        <MyIcon name={'core/modules/welcomeText'} mr={2} w={'14px'} color={'#E74694'} />
+        <Box fontWeight={'medium'}>{t('core.app.Welcome Text')}</Box>
+        <MyTooltip label={t(welcomeTextTip)} forceShow>
+          <QuestionOutlineIcon display={['none', 'inline']} ml={1} />
+        </MyTooltip>
+      </Flex>
+      {welcomeText && (
+        <Textarea
+          className="nodrag"
+          rows={6}
+          fontSize={'12px'}
+          resize={'both'}
+          defaultValue={welcomeText.value}
+          bg={'myWhite.500'}
+          placeholder={t(welcomeTextTip)}
+          onChange={(e) => {
+            startTst(() => {
+              onChangeNode({
+                nodeId,
+                key: NodeInputKeyEnum.welcomeText,
+                type: 'updateInput',
+                value: {
+                  ...welcomeText,
+                  value: e.target.value
+                }
+              });
+            });
+          }}
+        />
+      )}
+    </>
   );
 }
 
-function ChatStartVariable({ chatConfig: { variables = [] }, setAppDetail }: ComponentProps) {
+function ChatStartVariable({ data }: { data: FlowNodeItemType }) {
+  const { inputs, nodeId } = data;
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+
+  const variables = useMemo(
+    () =>
+      (inputs.find((item) => item.key === NodeInputKeyEnum.variables)
+        ?.value as VariableItemType[]) || [],
+    [inputs]
+  );
+
   const updateVariables = useMemoizedFn((value: VariableItemType[]) => {
-    setAppDetail((state) => ({
-      ...state,
-      chatConfig: {
-        ...state.chatConfig,
-        variables: value
+    // update system config node
+    onChangeNode({
+      nodeId,
+      key: NodeInputKeyEnum.variables,
+      type: 'updateInput',
+      value: {
+        ...inputs.find((item) => item.key === NodeInputKeyEnum.variables),
+        value
       }
-    }));
+    });
   });
 
   return <VariableEdit variables={variables} onChange={(e) => updateVariables(e)} />;
 }
 
-function QuestionGuide({ chatConfig: { questionGuide = false }, setAppDetail }: ComponentProps) {
+function QuestionGuide({ data }: { data: FlowNodeItemType }) {
+  const { inputs, nodeId } = data;
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+
+  const questionGuide = useMemo(
+    () =>
+      (inputs.find((item) => item.key === NodeInputKeyEnum.questionGuide)?.value as boolean) ||
+      false,
+    [inputs]
+  );
+
   return (
     <QGSwitch
       isChecked={questionGuide}
       size={'md'}
       onChange={(e) => {
         const value = e.target.checked;
-        setAppDetail((state) => ({
-          ...state,
-          chatConfig: {
-            ...state.chatConfig,
-            questionGuide: value
+        onChangeNode({
+          nodeId,
+          key: NodeInputKeyEnum.questionGuide,
+          type: 'updateInput',
+          value: {
+            ...inputs.find((item) => item.key === NodeInputKeyEnum.questionGuide),
+            value
           }
-        }));
+        });
       }}
     />
   );
 }
 
-function TTSGuide({ chatConfig: { ttsConfig }, setAppDetail }: ComponentProps) {
+function TTSGuide({ data }: { data: FlowNodeItemType }) {
+  const { inputs, nodeId } = data;
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+  const { ttsConfig } = splitGuideModule({ inputs } as StoreNodeItemType);
+
   return (
     <TTSSelect
       value={ttsConfig}
       onChange={(e) => {
-        setAppDetail((state) => ({
-          ...state,
-          chatConfig: {
-            ...state.chatConfig,
-            ttsConfig: e
+        onChangeNode({
+          nodeId,
+          key: NodeInputKeyEnum.tts,
+          type: 'updateInput',
+          value: {
+            ...inputs.find((item) => item.key === NodeInputKeyEnum.tts),
+            value: e
           }
-        }));
+        });
       }}
     />
   );
 }
 
-function WhisperGuide({ chatConfig: { whisperConfig, ttsConfig }, setAppDetail }: ComponentProps) {
+function WhisperGuide({ data }: { data: FlowNodeItemType }) {
+  const { inputs, nodeId } = data;
   const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+  const { ttsConfig, whisperConfig } = splitGuideModule({ inputs } as StoreNodeItemType);
 
   return (
     <WhisperConfig
-      isOpenAudio={ttsConfig?.type !== TTSTypeEnum.none}
+      isOpenAudio={ttsConfig.type !== TTSTypeEnum.none}
       value={whisperConfig}
       onChange={(e) => {
-        setAppDetail((state) => ({
-          ...state,
-          chatConfig: {
-            ...state.chatConfig,
-            whisperConfig: e
+        onChangeNode({
+          nodeId,
+          key: NodeInputKeyEnum.whisper,
+          type: 'updateInput',
+          value: {
+            ...inputs.find((item) => item.key === NodeInputKeyEnum.whisper),
+            value: e
           }
-        }));
+        });
       }}
     />
   );
 }
 
-function ScheduledTrigger({
-  chatConfig: { scheduledTriggerConfig },
-  setAppDetail
-}: ComponentProps) {
+function ScheduledTrigger({ data }: { data: FlowNodeItemType }) {
+  const { inputs, nodeId } = data;
+  const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
+  const { scheduledTriggerConfig } = splitGuideModule({ inputs } as StoreNodeItemType);
+
   return (
     <ScheduledTriggerConfig
       value={scheduledTriggerConfig}
       onChange={(e) => {
-        setAppDetail((state) => ({
-          ...state,
-          chatConfig: {
-            ...state.chatConfig,
-            scheduledTriggerConfig: e
+        onChangeNode({
+          nodeId,
+          key: NodeInputKeyEnum.scheduleTrigger,
+          type: 'updateInput',
+          value: {
+            ...inputs.find((item) => item.key === NodeInputKeyEnum.scheduleTrigger),
+            value: e
           }
-        }));
+        });
       }}
     />
   );
-}
-
-function QuestionInputGuide({ chatConfig: { chatInputGuide }, setAppDetail }: ComponentProps) {
-  const appId = useContextSelector(WorkflowContext, (v) => v.appId);
-
-  return appId ? (
-    <InputGuideConfig
-      appId={appId}
-      value={chatInputGuide}
-      onChange={(e) => {
-        setAppDetail((state) => ({
-          ...state,
-          chatConfig: {
-            ...state.chatConfig,
-            chatInputGuide: e
-          }
-        }));
-      }}
-    />
-  ) : null;
 }

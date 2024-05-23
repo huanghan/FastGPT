@@ -14,7 +14,7 @@ import {
 } from '@fastgpt/global/support/wallet/sub/constants';
 import type { TeamSubSchema } from '@fastgpt/global/support/wallet/sub/type';
 
-export const subCollectionName = 'team_subscriptions';
+export const subCollectionName = 'team.subscriptions';
 
 const SubSchema = new Schema({
   teamId: {

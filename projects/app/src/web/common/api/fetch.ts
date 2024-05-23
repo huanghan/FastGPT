@@ -2,6 +2,7 @@ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/cons
 import { getErrText } from '@fastgpt/global/common/error/utils';
 import type { ChatHistoryItemResType } from '@fastgpt/global/core/chat/type.d';
 import type { StartChatFnProps } from '@/components/ChatBox/type.d';
+import { getToken } from '@/web/support/user/auth';
 import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import dayjs from 'dayjs';
 import {
@@ -116,7 +117,8 @@ export const streamFetch = ({
       const requestData = {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          token: getToken()
         },
         signal: abortCtrl.signal,
         body: JSON.stringify({

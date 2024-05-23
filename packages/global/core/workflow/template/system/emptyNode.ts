@@ -12,7 +12,6 @@ export const EmptyNode: FlowNodeTemplateType = {
   avatar: '',
   name: '',
   intro: '',
-  version: '481',
   inputs: [],
   outputs: []
 };

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Flex, IconButton, useTheme, useDisclosure, Button } from '@chakra-ui/react';
 import { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
+import { AppSchema } from '@fastgpt/global/core/app/type.d';
 import { useTranslation } from 'next-i18next';
 import { useCopyData } from '@/web/common/hooks/useCopyData';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
@@ -8,7 +9,8 @@ import dynamic from 'next/dynamic';
 
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import ChatTest, { type ChatTestComponentRef } from '@/components/core/workflow/Flow/ChatTest';
-import { uiWorkflow2StoreWorkflow } from '@/components/core/workflow/utils';
+import { flowNode2StoreNodes } from '@/components/core/workflow/utils';
+import { useAppStore } from '@/web/core/app/store/useAppStore';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 import { getErrText } from '@fastgpt/global/common/error/utils';
@@ -25,16 +27,16 @@ import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext, getWorkflowStore } from '@/components/core/workflow/context';
 import { useInterval, useUpdateEffect } from 'ahooks';
 import { useI18n } from '@/web/context/I18n';
-import { AppContext } from '@/web/core/app/context/appContext';
 
 const ImportSettings = dynamic(() => import('@/components/core/workflow/Flow/ImportSettings'));
 const PublishHistories = dynamic(
   () => import('@/components/core/workflow/components/PublishHistoriesSlider')
 );
 
-type Props = { onClose: () => void };
+type Props = { app: AppSchema; onClose: () => void };
 
 const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
+  app,
   ChatTestRef,
   setWorkflowTestData,
   onClose
@@ -50,9 +52,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
     >
   >;
 }) {
-  const { appDetail } = useContextSelector(AppContext, (v) => v);
-
-  const isV2Workflow = appDetail?.version === 'v2';
+  const isV2Workflow = app?.version === 'v2';
 
   const theme = useTheme();
   const { toast } = useToast();
@@ -63,7 +63,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
   const { openConfirm: openConfigPublish, ConfirmModal } = useConfirm({
     content: t('core.app.Publish Confirm')
   });
-  const { publishApp, updateAppDetail } = useContextSelector(AppContext, (v) => v);
+  const { publishApp, updateAppDetail } = useAppStore();
   const edges = useContextSelector(WorkflowContext, (v) => v.edges);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -87,7 +87,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
     const checkResults = checkWorkflowNodeAndConnection({ nodes, edges });
 
     if (!checkResults) {
-      const storeNodes = uiWorkflow2StoreWorkflow({ nodes, edges });
+      const storeNodes = flowNode2StoreNodes({ nodes, edges });
 
       return storeNodes;
     } else {
@@ -109,13 +109,12 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
       if (nodes.length === 0) return null;
       setIsSaving(true);
 
-      const storeWorkflow = uiWorkflow2StoreWorkflow({ nodes, edges });
+      const storeWorkflow = flowNode2StoreNodes({ nodes, edges });
 
       try {
-        await updateAppDetail({
+        await updateAppDetail(app._id, {
           ...storeWorkflow,
           type: AppTypeEnum.advanced,
-          chatConfig: appDetail.chatConfig,
           //@ts-ignore
           version: 'v2'
         });
@@ -132,7 +131,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
 
       return null;
     },
-    [isV2Workflow, isShowVersionHistories, edges, updateAppDetail, appDetail.chatConfig, t]
+    [isShowVersionHistories, edges, updateAppDetail, app._id, t]
   );
 
   const onclickPublish = useCallback(async () => {
@@ -140,10 +139,9 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
     const data = await flowData2StoreDataAndCheck();
     if (data) {
       try {
-        await publishApp({
+        await publishApp(app._id, {
           ...data,
           type: AppTypeEnum.advanced,
-          chatConfig: appDetail.chatConfig,
           //@ts-ignore
           version: 'v2'
         });
@@ -161,7 +159,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
     }
 
     setIsSaving(false);
-  }, [flowData2StoreDataAndCheck, publishApp, appDetail.chatConfig, toast, t, ChatTestRef]);
+  }, [flowData2StoreDataAndCheck, publishApp, app._id, toast, t, ChatTestRef]);
 
   const saveAndBack = useCallback(async () => {
     try {
@@ -177,8 +175,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
         JSON.stringify(
           {
             nodes: filterSensitiveNodesData(data.nodes),
-            edges: data.edges,
-            chatConfig: appDetail.chatConfig
+            edges: data.edges
           },
           null,
           2
@@ -186,7 +183,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
         appT('Export Config Successful')
       );
     }
-  }, [appDetail.chatConfig, appT, copyData, flowData2StoreDataAndCheck]);
+  }, [appT, copyData, flowData2StoreDataAndCheck]);
 
   // effect
   useBeforeunload({
@@ -195,7 +192,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
   });
 
   useInterval(() => {
-    if (!appDetail._id) return;
+    if (!app._id) return;
     onclickSave(!!workflowDebugData);
   }, 20000);
 
@@ -225,7 +222,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
           />
           <Box ml={[2, 4]}>
             <Box fontSize={['md', 'lg']} fontWeight={'bold'}>
-              {appDetail.name}
+              {app.name}
             </Box>
             {!isShowVersionHistories && isV2Workflow && (
               <MyTooltip label={t('core.app.Onclick to save')}>
@@ -317,7 +314,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
     theme.borders.base,
     isSaving,
     saveAndBack,
-    appDetail.name,
+    app.name,
     isShowVersionHistories,
     isV2Workflow,
     t,
@@ -344,6 +341,7 @@ const RenderHeaderContainer = React.memo(function RenderHeaderContainer({
 });
 
 const Header = (props: Props) => {
+  const { app } = props;
   const ChatTestRef = useRef<ChatTestComponentRef>(null);
 
   const [workflowTestData, setWorkflowTestData] = useState<{
@@ -363,7 +361,13 @@ const Header = (props: Props) => {
         ChatTestRef={ChatTestRef}
         setWorkflowTestData={setWorkflowTestData}
       />
-      <ChatTest ref={ChatTestRef} isOpen={isOpenTest} {...workflowTestData} onClose={onCloseTest} />
+      <ChatTest
+        ref={ChatTestRef}
+        isOpen={isOpenTest}
+        {...workflowTestData}
+        app={app}
+        onClose={onCloseTest}
+      />
     </>
   );
 };

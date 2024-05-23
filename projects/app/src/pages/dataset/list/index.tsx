@@ -1,6 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Box, Flex, Grid, useDisclosure, Image, Button } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
+import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 import PageContainer from '@/components/PageContainer';
 import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 import { AddIcon } from '@chakra-ui/icons';
@@ -33,31 +34,29 @@ import ParentPaths from '@/components/common/ParentPaths';
 import DatasetTypeTag from '@/components/core/dataset/DatasetTypeTag';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { getErrText } from '@fastgpt/global/common/error/utils';
-import { useDatasetStore } from '@/web/core/dataset/store/dataset';
-import { downloadFetch } from '@/web/common/system/utils';
+import { xmlDownloadFetch } from '@/web/common/api/xmlFetch';
 
 const CreateModal = dynamic(() => import('./component/CreateModal'), { ssr: false });
 const MoveModal = dynamic(() => import('./component/MoveModal'), { ssr: false });
 
-const Dataset = () => {
+const Kb = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const router = useRouter();
   const { parentId } = router.query as { parentId: string };
   const { setLoading } = useSystemStore();
   const { userInfo } = useUserStore();
-  const { myDatasets, loadMyDatasets, setMyDatasets } = useDatasetStore();
 
   const DeleteTipsMap = useRef({
     [DatasetTypeEnum.folder]: t('dataset.deleteFolderTips'),
     [DatasetTypeEnum.dataset]: t('core.dataset.Delete Confirm'),
-    [DatasetTypeEnum.websiteDataset]: t('core.dataset.Delete Confirm'),
-    [DatasetTypeEnum.externalFile]: t('core.dataset.Delete Confirm')
+    [DatasetTypeEnum.websiteDataset]: t('core.dataset.Delete Confirm')
   });
 
   const { openConfirm, ConfirmModal } = useConfirm({
     type: 'delete'
   });
+  const { myDatasets, loadDatasets, setDatasets, updateDataset } = useDatasetStore();
   const { onOpenModal: onOpenTitleModal, EditModal: EditTitleModal } = useEditTitle({
     title: t('Rename')
   });
@@ -79,7 +78,7 @@ const Dataset = () => {
       return id;
     },
     onSuccess(id: string) {
-      setMyDatasets(myDatasets.filter((item) => item._id !== id));
+      setDatasets(myDatasets.filter((item) => item._id !== id));
     },
     onSettled() {
       setLoading(false);
@@ -93,7 +92,7 @@ const Dataset = () => {
       setLoading(true);
       await checkTeamExportDatasetLimit(dataset._id);
 
-      await downloadFetch({
+      await xmlDownloadFetch({
         url: `/api/core/dataset/exportAll?datasetId=${dataset._id}`,
         filename: `${dataset.name}.csv`
       });
@@ -113,7 +112,7 @@ const Dataset = () => {
   const { data, refetch, isFetching } = useQuery(
     ['loadDataset', parentId],
     () => {
-      return Promise.all([loadMyDatasets(parentId), getDatasetPaths(parentId)]);
+      return Promise.all([loadDatasets(parentId), getDatasetPaths(parentId)]);
     },
     {
       onError(err) {
@@ -140,10 +139,7 @@ const Dataset = () => {
   );
 
   return (
-    <PageContainer
-      isLoading={myDatasets.length === 0 && isFetching}
-      insertProps={{ px: [5, '48px'] }}
-    >
+    <PageContainer isLoading={isFetching} insertProps={{ px: [5, '48px'] }}>
       <Flex pt={[4, '30px']} alignItems={'center'} justifyContent={'space-between'}>
         {/* url path */}
         <ParentPaths
@@ -309,6 +305,43 @@ const Dataset = () => {
                     </Box>
                   }
                   menuList={[
+                    ...(dataset.permission === PermissionTypeEnum.private
+                      ? [
+                          {
+                            label: (
+                              <Flex alignItems={'center'}>
+                                <MyIcon name={'support/permission/publicLight'} w={'14px'} mr={2} />
+                                {t('permission.Set Public')}
+                              </Flex>
+                            ),
+                            onClick: () => {
+                              updateDataset({
+                                id: dataset._id,
+                                permission: PermissionTypeEnum.public
+                              });
+                            }
+                          }
+                        ]
+                      : [
+                          {
+                            label: (
+                              <Flex alignItems={'center'}>
+                                <MyIcon
+                                  name={'support/permission/privateLight'}
+                                  w={'14px'}
+                                  mr={2}
+                                />
+                                {t('permission.Set Private')}
+                              </Flex>
+                            ),
+                            onClick: () => {
+                              updateDataset({
+                                id: dataset._id,
+                                permission: PermissionTypeEnum.private
+                              });
+                            }
+                          }
+                        ]),
                     {
                       label: (
                         <Flex alignItems={'center'}>
@@ -321,10 +354,7 @@ const Dataset = () => {
                           defaultVal: dataset.name,
                           onSuccess: (val) => {
                             if (val === dataset.name || !val) return;
-                            putDatasetById({
-                              id: dataset._id,
-                              name: val
-                            });
+                            updateDataset({ id: dataset._id, name: val });
                           }
                         })
                     },
@@ -348,43 +378,6 @@ const Dataset = () => {
                         exportDataset(dataset);
                       }
                     },
-                    ...(dataset.permission === PermissionTypeEnum.private
-                      ? [
-                          {
-                            label: (
-                              <Flex alignItems={'center'}>
-                                <MyIcon name={'support/permission/publicLight'} w={'14px'} mr={2} />
-                                {t('permission.Set Public')}
-                              </Flex>
-                            ),
-                            onClick: () => {
-                              putDatasetById({
-                                id: dataset._id,
-                                permission: PermissionTypeEnum.public
-                              });
-                            }
-                          }
-                        ]
-                      : [
-                          {
-                            label: (
-                              <Flex alignItems={'center'}>
-                                <MyIcon
-                                  name={'support/permission/privateLight'}
-                                  w={'14px'}
-                                  mr={2}
-                                />
-                                {t('permission.Set Private')}
-                              </Flex>
-                            ),
-                            onClick: () => {
-                              putDatasetById({
-                                id: dataset._id,
-                                permission: PermissionTypeEnum.private
-                              });
-                            }
-                          }
-                        ]),
                     {
                       label: (
                         <Flex alignItems={'center'}>
@@ -483,9 +476,9 @@ const Dataset = () => {
 export async function getServerSideProps(content: any) {
   return {
     props: {
-      ...(await serviceSideProps(content, ['dataset']))
+      ...(await serviceSideProps(content))
     }
   };
 }
 
-export default Dataset;
+export default Kb;

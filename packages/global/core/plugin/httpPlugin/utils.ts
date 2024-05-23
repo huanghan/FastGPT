@@ -282,7 +282,6 @@ export const httpApiSchema2Plugins = async ({
           x: 616.4226348688949,
           y: -165.05298493910115
         },
-        version: PluginInputModule.version,
         inputs: pluginInputs,
         outputs: pluginOutputs
       },
@@ -297,7 +296,6 @@ export const httpApiSchema2Plugins = async ({
           x: 1607.7142331269126,
           y: -151.8669210746189
         },
-        version: PluginOutputModule.version,
         inputs: [
           {
             key: pluginOutputKey,
@@ -336,7 +334,6 @@ export const httpApiSchema2Plugins = async ({
           x: 1042.549746602742,
           y: -447.77496332641647
         },
-        version: HttpModule468.version,
         inputs: [
           {
             key: NodeInputKeyEnum.addInputParam,

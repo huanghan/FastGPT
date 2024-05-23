@@ -3,18 +3,17 @@ import { Box, Flex, IconButton } from '@chakra-ui/react';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import { useTranslation } from 'next-i18next';
 
+import { useImportStore } from '../Provider';
 import MyMenu from '@fastgpt/web/components/common/MyMenu';
 import { ImportSourceItemType } from '@/web/core/dataset/type';
 import dynamic from 'next/dynamic';
-import { useContextSelector } from 'use-context-selector';
-import { DatasetImportContext } from '../Context';
 const PreviewRawText = dynamic(() => import('./PreviewRawText'));
 const PreviewChunks = dynamic(() => import('./PreviewChunks'));
 
 const Preview = ({ showPreviewChunks }: { showPreviewChunks: boolean }) => {
   const { t } = useTranslation();
 
-  const { sources } = useContextSelector(DatasetImportContext, (v) => v);
+  const { sources } = useImportStore();
   const [previewRawTextSource, setPreviewRawTextSource] = useState<ImportSourceItemType>();
   const [previewChunkSource, setPreviewChunkSource] = useState<ImportSourceItemType>();
 

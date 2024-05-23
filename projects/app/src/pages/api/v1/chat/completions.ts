@@ -10,7 +10,6 @@ import type { ChatCompletionCreateParams } from '@fastgpt/global/core/ai/type.d'
 import type { ChatCompletionMessageParam } from '@fastgpt/global/core/ai/type.d';
 import {
   getDefaultEntryNodeIds,
-  getMaxHistoryLimitFromNodes,
   initWorkflowEdgeStatus,
   storeNodes2RuntimeNodes,
   textAdaptGptResponse
@@ -45,7 +44,7 @@ import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runti
 
 import { dispatchWorkFlowV1 } from '@fastgpt/service/core/workflow/dispatchV1';
 import { setEntryEntries } from '@fastgpt/service/core/workflow/dispatchV1/utils';
-import { NextAPI } from '@/service/middleware/entry';
+import { NextAPI } from '@/service/middle/entry';
 import { getAppLatestVersion } from '@fastgpt/service/core/app/controller';
 
 type FastGptWebChatProps = {
@@ -163,17 +162,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return authHeaderRequest({
           req,
           appId,
-          chatId
+          chatId,
+          detail
         });
       })();
 
     // 1. get and concat history; 2. get app workflow
-    const limit = getMaxHistoryLimitFromNodes(app.modules);
-    const [{ history }, { nodes, edges, chatConfig }] = await Promise.all([
+    const [{ history }, { nodes, edges }] = await Promise.all([
       getChatItems({
         appId: app._id,
         chatId,
-        limit,
+        limit: 30,
         field: `dataId obj value`
       }),
       getAppLatestVersion(app._id, app)
@@ -248,7 +247,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         teamId,
         tmbId: tmbId,
         nodes,
-        appChatConfig: chatConfig,
         variables: newVariables,
         isUpdateUseTime: isOwnerUse && source === ChatSourceEnum.online, // owner update use time
         shareId,
@@ -291,19 +289,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         data: '[DONE]'
       });
 
-      if (detail) {
+      if (responseDetail && detail) {
         responseWrite({
           res,
           event: SseResponseEventEnum.updateVariables,
           data: JSON.stringify(newVariables)
         });
-        if (responseDetail) {
-          responseWrite({
-            res,
-            event: SseResponseEventEnum.flowResponses,
-            data: JSON.stringify(feResponseData)
-          });
-        }
+        responseWrite({
+          res,
+          event: SseResponseEventEnum.flowResponses,
+          data: JSON.stringify(feResponseData)
+        });
       }
 
       res.end();
@@ -444,11 +440,13 @@ const authTeamSpaceChat = async ({
 const authHeaderRequest = async ({
   req,
   appId,
-  chatId
+  chatId,
+  detail
 }: {
   req: NextApiRequest;
   appId?: string;
   chatId?: string;
+  detail?: boolean;
 }): Promise<AuthResponseType> => {
   const {
     appId: apiKeyAppId,
@@ -516,7 +514,7 @@ const authHeaderRequest = async ({
     tmbId,
     user,
     app,
-    responseDetail: true,
+    responseDetail: detail,
     apikey,
     authType,
     canWrite
@@ -525,9 +523,6 @@ const authHeaderRequest = async ({
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '20mb'
-    },
     responseLimit: '20mb'
   }
 };

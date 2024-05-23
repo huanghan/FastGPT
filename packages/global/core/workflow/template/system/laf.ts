@@ -25,7 +25,6 @@ export const LafModule: FlowNodeTemplateType = {
   intro: '可以调用Laf账号下的云函数。',
   showStatus: true,
   isTool: true,
-  version: '481',
   inputs: [
     {
       ...Input_Template_DynamicInput,

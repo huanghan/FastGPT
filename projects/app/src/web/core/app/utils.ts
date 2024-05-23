@@ -1,9 +1,4 @@
-import {
-  AppDetailType,
-  ChatInputGuideConfigType,
-  AppSchema,
-  AppSimpleEditFormType
-} from '@fastgpt/global/core/app/type';
+import { AppSimpleEditFormType } from '@fastgpt/global/core/app/type';
 import { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
 import {
   FlowNodeInputTypeEnum,
@@ -32,8 +27,44 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
         x: 531.2422736065552,
         y: -486.7611729549753
       },
-      version: '481',
-      inputs: [],
+      inputs: [
+        {
+          key: NodeInputKeyEnum.welcomeText,
+          renderTypeList: [FlowNodeInputTypeEnum.hidden],
+          label: 'core.app.Welcome Text',
+          value: formData.userGuide.welcomeText
+        },
+        {
+          key: NodeInputKeyEnum.variables,
+          renderTypeList: [FlowNodeInputTypeEnum.hidden],
+          label: 'core.app.Chat Variable',
+          value: formData.userGuide.variables
+        },
+        {
+          key: NodeInputKeyEnum.questionGuide,
+          renderTypeList: [FlowNodeInputTypeEnum.hidden],
+          label: 'core.app.Question Guide',
+          value: formData.userGuide.questionGuide
+        },
+        {
+          key: NodeInputKeyEnum.tts,
+          renderTypeList: [FlowNodeInputTypeEnum.hidden],
+          label: '',
+          value: formData.userGuide.tts
+        },
+        {
+          key: NodeInputKeyEnum.whisper,
+          renderTypeList: [FlowNodeInputTypeEnum.hidden],
+          label: '',
+          value: formData.userGuide.whisper
+        },
+        {
+          key: NodeInputKeyEnum.scheduleTrigger,
+          renderTypeList: [FlowNodeInputTypeEnum.hidden],
+          label: '',
+          value: formData.userGuide.scheduleTrigger
+        }
+      ],
       outputs: []
     };
   }
@@ -43,12 +74,11 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
       name: '流程开始',
       intro: '',
       avatar: '/imgs/workflow/userChatInput.svg',
-      flowNodeType: FlowNodeTypeEnum.workflowStart,
+      flowNodeType: 'workflowStart',
       position: {
         x: 558.4082376415505,
         y: 123.72387429194112
       },
-      version: '481',
       inputs: [
         {
           key: 'userChatInput',
@@ -79,13 +109,12 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
           name: 'AI 对话',
           intro: 'AI 大模型对话',
           avatar: '/imgs/workflow/AI.png',
-          flowNodeType: FlowNodeTypeEnum.chatNode,
+          flowNodeType: 'chatNode',
           showStatus: true,
           position: {
             x: 1106.3238387960757,
             y: -350.6030674683474
           },
-          version: '481',
           inputs: [
             {
               key: 'model',
@@ -212,13 +241,12 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
           name: 'AI 对话',
           intro: 'AI 大模型对话',
           avatar: '/imgs/workflow/AI.png',
-          flowNodeType: FlowNodeTypeEnum.chatNode,
+          flowNodeType: 'chatNode',
           showStatus: true,
           position: {
             x: 1638.509551404687,
             y: -341.0428450861567
           },
-          version: '481', // [FlowNodeTypeEnum.chatNode]
           inputs: [
             {
               key: 'model',
@@ -332,13 +360,12 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
           name: '知识库搜索',
           intro: '调用“语义检索”和“全文检索”能力，从“知识库”中查找可能与问题相关的参考内容',
           avatar: '/imgs/workflow/db.png',
-          flowNodeType: FlowNodeTypeEnum.datasetSearchNode,
+          flowNodeType: 'datasetSearchNode',
           showStatus: true,
           position: {
             x: 918.5901682164496,
             y: -227.11542247619582
           },
-          version: '481',
           inputs: [
             {
               key: 'datasets',
@@ -451,13 +478,12 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
                 name: '知识库搜索',
                 intro: '调用“语义检索”和“全文检索”能力，从“知识库”中查找可能与问题相关的参考内容',
                 avatar: '/imgs/workflow/db.png',
-                flowNodeType: FlowNodeTypeEnum.datasetSearchNode,
+                flowNodeType: 'datasetSearchNode',
                 showStatus: true,
                 position: {
                   x: 500,
                   y: 545
                 },
-                version: '481',
                 inputs: [
                   {
                     key: 'datasets',
@@ -571,7 +597,6 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
               x: 500 + 500 * (i + 1),
               y: 545
             },
-            version: tool.version,
             inputs: tool.inputs,
             outputs: tool.outputs
           }
@@ -594,13 +619,12 @@ export function form2AppWorkflow(data: AppSimpleEditFormType): WorkflowType {
           name: '工具调用（实验）',
           intro: '通过AI模型自动选择一个或多个功能块进行调用，也可以对插件进行调用。',
           avatar: '/imgs/workflow/tool.svg',
-          flowNodeType: FlowNodeTypeEnum.tools,
+          flowNodeType: 'tools',
           showStatus: true,
           position: {
             x: 1062.1738942532802,
             y: -223.65033022650476
           },
-          version: '481',
           inputs: [
             {
               key: 'model',
@@ -701,7 +725,6 @@ export const getSystemVariables = (t: TFunction): EditorVariablePickerType[] => 
     {
       key: 'appId',
       label: t('core.module.http.AppId'),
-      required: true,
       valueType: WorkflowIOValueTypeEnum.string
     },
     {
@@ -717,22 +740,12 @@ export const getSystemVariables = (t: TFunction): EditorVariablePickerType[] => 
     {
       key: 'histories',
       label: t('core.module.http.Histories'),
-      required: true,
       valueType: WorkflowIOValueTypeEnum.chatHistory
     },
     {
       key: 'cTime',
       label: t('core.module.http.Current time'),
-      required: true,
       valueType: WorkflowIOValueTypeEnum.string
     }
   ];
-};
-
-export const getAppQGuideCustomURL = (appDetail: AppDetailType | AppSchema): string => {
-  return (
-    appDetail?.modules
-      .find((m) => m.flowNodeType === FlowNodeTypeEnum.systemConfig)
-      ?.inputs.find((i) => i.key === NodeInputKeyEnum.chatInputGuide)?.value.customUrl || ''
-  );
 };

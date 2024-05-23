@@ -11,7 +11,6 @@ import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { initGlobal } from './common/system';
 import { startMongoWatch } from './common/system/volumnMongoWatch';
 import { startTrainingQueue } from './core/dataset/training/utils';
-import { systemStartCb } from '@fastgpt/service/common/system/tools';
 
 /**
  * connect MongoDB and init data
@@ -22,7 +21,6 @@ export function connectToDatabase(): Promise<void> {
       initGlobal();
     },
     afterHook: async () => {
-      systemStartCb();
       // init system config
       getInitConfig();
       //init vector database, init root user

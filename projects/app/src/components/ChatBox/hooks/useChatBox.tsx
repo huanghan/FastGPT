@@ -1,7 +1,7 @@
 import { ExportChatType } from '@/types/chat';
 import { ChatItemType } from '@fastgpt/global/core/chat/type';
 import { useCallback } from 'react';
-import { htmlTemplate } from '@/web/core/chat/constants';
+import { htmlTemplate } from '@/constants/common';
 import { fileDownload } from '@/web/common/file/utils';
 
 export const useChatBox = () => {

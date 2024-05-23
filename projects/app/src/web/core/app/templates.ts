@@ -1,10 +1,7 @@
 import { AppItemType } from '@/types/app';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import { WorkflowIOValueTypeEnum } from '@fastgpt/global/core/workflow/constants';
-import {
-  FlowNodeInputTypeEnum,
-  FlowNodeTypeEnum
-} from '@fastgpt/global/core/workflow/node/constant';
+import { FlowNodeInputTypeEnum } from '@fastgpt/global/core/workflow/node/constant';
 
 // template
 export const appTemplates: (AppItemType & {
@@ -24,12 +21,11 @@ export const appTemplates: (AppItemType & {
         name: '系统配置',
         intro: '可以配置应用的系统参数',
         avatar: '/imgs/workflow/userGuide.png',
-        flowNodeType: FlowNodeTypeEnum.systemConfig,
+        flowNodeType: 'userGuide',
         position: {
           x: 531.2422736065552,
           y: -486.7611729549753
         },
-        version: '481',
         inputs: [
           {
             key: 'welcomeText',
@@ -87,12 +83,11 @@ export const appTemplates: (AppItemType & {
         name: '流程开始',
         intro: '',
         avatar: '/imgs/workflow/userChatInput.svg',
-        flowNodeType: FlowNodeTypeEnum.workflowStart,
+        flowNodeType: 'workflowStart',
         position: {
           x: 558.4082376415505,
           y: 123.72387429194112
         },
-        version: '481',
         inputs: [
           {
             key: 'userChatInput',
@@ -118,13 +113,12 @@ export const appTemplates: (AppItemType & {
         name: 'AI 对话',
         intro: 'AI 大模型对话',
         avatar: '/imgs/workflow/AI.png',
-        flowNodeType: FlowNodeTypeEnum.chatNode,
+        flowNodeType: 'chatNode',
         showStatus: true,
         position: {
           x: 1097.7317280958762,
           y: -244.16014496351386
         },
-        version: '481',
         inputs: [
           {
             key: 'model',
@@ -254,12 +248,11 @@ export const appTemplates: (AppItemType & {
         name: '系统配置',
         intro: '可以配置应用的系统参数',
         avatar: '/imgs/workflow/userGuide.png',
-        flowNodeType: FlowNodeTypeEnum.systemConfig,
+        flowNodeType: 'userGuide',
         position: {
           x: 496.57560693988853,
           y: -490.7611729549753
         },
-        version: '481',
         inputs: [
           {
             key: 'welcomeText',
@@ -334,12 +327,11 @@ export const appTemplates: (AppItemType & {
         name: '流程开始',
         intro: '',
         avatar: '/imgs/workflow/userChatInput.svg',
-        flowNodeType: FlowNodeTypeEnum.workflowStart,
+        flowNodeType: 'workflowStart',
         position: {
           x: 558.4082376415505,
           y: 123.72387429194112
         },
-        version: '481',
         inputs: [
           {
             key: 'userChatInput',
@@ -365,13 +357,12 @@ export const appTemplates: (AppItemType & {
         name: 'AI 对话',
         intro: 'AI 大模型对话',
         avatar: '/imgs/workflow/AI.png',
-        flowNodeType: FlowNodeTypeEnum.chatNode,
+        flowNodeType: 'chatNode',
         showStatus: true,
         position: {
           x: 1097.7317280958762,
           y: -244.16014496351386
         },
-        version: '481',
         inputs: [
           {
             key: 'model',
@@ -501,12 +492,11 @@ export const appTemplates: (AppItemType & {
         name: '系统配置',
         intro: '可以配置应用的系统参数',
         avatar: '/imgs/workflow/userGuide.png',
-        flowNodeType: FlowNodeTypeEnum.systemConfig,
+        flowNodeType: 'userGuide',
         position: {
           x: 531.2422736065552,
           y: -486.7611729549753
         },
-        version: '481',
         inputs: [
           {
             key: 'welcomeText',
@@ -564,12 +554,11 @@ export const appTemplates: (AppItemType & {
         name: '流程开始',
         intro: '',
         avatar: '/imgs/workflow/userChatInput.svg',
-        flowNodeType: FlowNodeTypeEnum.workflowStart,
+        flowNodeType: 'workflowStart',
         position: {
           x: 558.4082376415505,
           y: 123.72387429194112
         },
-        version: '481',
         inputs: [
           {
             key: 'userChatInput',
@@ -595,13 +584,12 @@ export const appTemplates: (AppItemType & {
         name: 'AI 对话',
         intro: 'AI 大模型对话',
         avatar: '/imgs/workflow/AI.png',
-        flowNodeType: FlowNodeTypeEnum.chatNode,
+        flowNodeType: 'chatNode',
         showStatus: true,
         position: {
           x: 1638.509551404687,
           y: -341.0428450861567
         },
-        version: '481',
         inputs: [
           {
             key: 'model',
@@ -715,13 +703,12 @@ export const appTemplates: (AppItemType & {
         name: '知识库搜索',
         intro: '调用“语义检索”和“全文检索”能力，从“知识库”中查找可能与问题相关的参考内容',
         avatar: '/imgs/workflow/db.png',
-        flowNodeType: FlowNodeTypeEnum.datasetSearchNode,
+        flowNodeType: 'datasetSearchNode',
         showStatus: true,
         position: {
           x: 918.5901682164496,
           y: -227.11542247619582
         },
-        version: '481',
         inputs: [
           {
             key: 'datasets',
@@ -829,12 +816,11 @@ export const appTemplates: (AppItemType & {
         name: '系统配置',
         intro: '可以配置应用的系统参数',
         avatar: '/imgs/workflow/userGuide.png',
-        flowNodeType: FlowNodeTypeEnum.systemConfig,
+        flowNodeType: 'userGuide',
         position: {
           x: 531.2422736065552,
           y: -486.7611729549753
         },
-        version: '481',
         inputs: [
           {
             key: 'welcomeText',
@@ -892,12 +878,11 @@ export const appTemplates: (AppItemType & {
         name: '流程开始',
         intro: '',
         avatar: '/imgs/workflow/userChatInput.svg',
-        flowNodeType: FlowNodeTypeEnum.workflowStart,
+        flowNodeType: 'workflowStart',
         position: {
           x: 558.4082376415505,
           y: 123.72387429194112
         },
-        version: '481',
         inputs: [
           {
             key: 'userChatInput',
@@ -923,13 +908,12 @@ export const appTemplates: (AppItemType & {
         name: 'AI 对话',
         intro: 'AI 大模型对话',
         avatar: '/imgs/workflow/AI.png',
-        flowNodeType: FlowNodeTypeEnum.chatNode,
+        flowNodeType: 'chatNode',
         showStatus: true,
         position: {
           x: 2701.1267277679685,
           y: -767.8956312653042
         },
-        version: '481',
         inputs: [
           {
             key: 'model',
@@ -1044,13 +1028,12 @@ export const appTemplates: (AppItemType & {
         intro:
           '根据用户的历史记录和当前问题判断该次提问的类型。可以添加多组问题类型，下面是一个模板例子：\n类型1: 打招呼\n类型2: 关于商品“使用”问题\n类型3: 关于商品“购买”问题\n类型4: 其他问题',
         avatar: '/imgs/workflow/cq.png',
-        flowNodeType: FlowNodeTypeEnum.classifyQuestion,
+        flowNodeType: 'classifyQuestion',
         showStatus: true,
         position: {
           x: 1020.9667229609946,
           y: -385.0060974413916
         },
-        version: '481',
         inputs: [
           {
             key: 'model',
@@ -1126,12 +1109,11 @@ export const appTemplates: (AppItemType & {
         intro:
           '该模块可以直接回复一段指定的内容。常用于引导、提示。非字符串内容传入时，会转成字符串进行输出。',
         avatar: '/imgs/workflow/reply.png',
-        flowNodeType: FlowNodeTypeEnum.answerNode,
+        flowNodeType: 'answerNode',
         position: {
           x: 1874.9167551056487,
           y: 434.98431875888207
         },
-        version: '481',
         inputs: [
           {
             key: 'text',
@@ -1151,13 +1133,12 @@ export const appTemplates: (AppItemType & {
         name: '知识库搜索',
         intro: '调用“语义检索”和“全文检索”能力，从“知识库”中查找可能与问题相关的参考内容',
         avatar: '/imgs/workflow/db.png',
-        flowNodeType: FlowNodeTypeEnum.datasetSearchNode,
+        flowNodeType: 'datasetSearchNode',
         showStatus: true,
         position: {
           x: 1851.010152279949,
           y: -613.3555232387284
         },
-        version: '481',
         inputs: [
           {
             key: 'datasets',

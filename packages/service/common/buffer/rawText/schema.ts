@@ -2,7 +2,7 @@ import { connectionMongo, type Model } from '../../mongo';
 const { Schema, model, models } = connectionMongo;
 import { RawTextBufferSchemaType } from './type';
 
-export const collectionName = 'buffer_rawtexts';
+export const collectionName = 'buffer.rawText';
 
 const RawTextBufferSchema = new Schema({
   sourceId: {

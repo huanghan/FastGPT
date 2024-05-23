@@ -17,7 +17,8 @@ import { pushDataListToTrainingQueue } from '@fastgpt/service/core/dataset/train
 import { createTrainingUsage } from '@fastgpt/service/support/wallet/usage/controller';
 import { UsageSourceEnum } from '@fastgpt/global/support/wallet/usage/constants';
 import { getLLMModel, getVectorModel } from '@fastgpt/service/core/ai/model';
-import { rawText2Chunks } from '@fastgpt/service/core/dataset/read';
+import { parseCsvTable2Chunks } from '@fastgpt/service/core/dataset/training/utils';
+import { startTrainingQueue } from '@/service/core/dataset/training/utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const { datasetId, parentId, fileId } = req.body as FileIdCreateDatasetCollectionParams;
@@ -38,15 +39,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const { rawText, filename } = await readFileContentFromMongo({
       teamId,
       bucketName: BucketNameEnum.dataset,
-      fileId,
-      isQAImport: true
+      fileId
     });
-    console.log(rawText);
     // 2. split chunks
-    const chunks = rawText2Chunks({
-      rawText,
-      isQAImport: true
-    });
+    const { chunks = [] } = parseCsvTable2Chunks(rawText);
 
     // 3. auth limit
     await checkDatasetLimit({
@@ -103,6 +99,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       return collectionId;
     });
+
+    startTrainingQueue(true);
 
     jsonRes(res);
   } catch (error) {

@@ -5,6 +5,11 @@ import MyModal from '@fastgpt/web/components/common/MyModal';
 import { useForm } from 'react-hook-form';
 import { PromptTemplateItem } from '@fastgpt/global/core/ai/type';
 import { useTranslation } from 'next-i18next';
+import {
+  formatEditorVariablePickerIcon,
+  getGuideModule,
+  splitGuideModule
+} from '@fastgpt/global/core/workflow/utils';
 import { ModalBody } from '@chakra-ui/react';
 import MyTooltip from '@/components/MyTooltip';
 import {
@@ -17,12 +22,12 @@ import PromptTemplate from '@/components/PromptTemplate';
 import { NodeInputKeyEnum, WorkflowIOValueTypeEnum } from '@fastgpt/global/core/workflow/constants';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import Reference from './Reference';
+import { getSystemVariables } from '@/web/core/app/utils';
 import ValueTypeLabel from '../../ValueTypeLabel';
 import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext } from '@/components/core/workflow/context';
 import { getWorkflowGlobalVariables } from '@/web/core/workflow/utils';
 import { useCreation } from 'ahooks';
-import { AppContext } from '@/web/core/app/context/appContext';
 
 const LabelStyles: BoxProps = {
   fontSize: ['sm', 'md']
@@ -47,14 +52,9 @@ const SettingQuotePrompt = (props: RenderInputProps) => {
   });
   const aiChatQuoteTemplate = watch('quoteTemplate');
   const aiChatQuotePrompt = watch('quotePrompt');
-  const { appDetail } = useContextSelector(AppContext, (v) => v);
 
   const variables = useCreation(() => {
-    const globalVariables = getWorkflowGlobalVariables({
-      nodes: nodeList,
-      chatConfig: appDetail.chatConfig,
-      t
-    });
+    const globalVariables = getWorkflowGlobalVariables(nodeList, t);
 
     return globalVariables;
   }, [nodeList, t]);

@@ -9,7 +9,7 @@ import { readXlsxRawText } from './extension/xlsx';
 import { readCsvRawText } from './extension/csv';
 
 parentPort?.on('message', async (props: ReadRawTextProps<Uint8Array>) => {
-  const readRawContentByFileBuffer = async (params: ReadRawTextByBuffer) => {
+  const readFileRawContent = async (params: ReadRawTextByBuffer) => {
     switch (params.extension) {
       case 'txt':
       case 'md':
@@ -23,9 +23,25 @@ parentPort?.on('message', async (props: ReadRawTextProps<Uint8Array>) => {
       case 'pptx':
         return readPptxRawText(params);
       case 'xlsx':
-        return readXlsxRawText(params);
+        const xlsxResult = await readXlsxRawText(params);
+        if (params.csvFormat) {
+          return {
+            rawText: xlsxResult.formatText || ''
+          };
+        }
+        return {
+          rawText: xlsxResult.rawText
+        };
       case 'csv':
-        return readCsvRawText(params);
+        const csvResult = await readCsvRawText(params);
+        if (params.csvFormat) {
+          return {
+            rawText: csvResult.formatText || ''
+          };
+        }
+        return {
+          rawText: csvResult.rawText
+        };
       default:
         return Promise.reject('Only support .txt, .md, .html, .pdf, .docx, pptx, .csv, .xlsx');
     }
@@ -41,7 +57,7 @@ parentPort?.on('message', async (props: ReadRawTextProps<Uint8Array>) => {
   try {
     parentPort?.postMessage({
       type: 'success',
-      data: await readRawContentByFileBuffer(newProps)
+      data: await readFileRawContent(newProps)
     });
   } catch (error) {
     console.log(error);

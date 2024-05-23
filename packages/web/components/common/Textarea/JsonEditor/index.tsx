@@ -22,7 +22,6 @@ type Props = Omit<BoxProps, 'resize' | 'onChange'> & {
   onChange?: (e: string) => void;
   variables?: EditorVariablePickerType[];
   defaultHeight?: number;
-  placeholder?: string;
 };
 
 const options = {

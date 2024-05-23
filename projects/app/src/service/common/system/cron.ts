@@ -28,7 +28,7 @@ const clearInvalidDataCron = () => {
         lockMinuted: 59
       })
     ) {
-      checkInvalidDatasetFiles(addHours(new Date(), -6), addHours(new Date(), -2));
+      checkInvalidDatasetFiles(addHours(new Date(), 2), addHours(new Date(), 6));
     }
   });
 
@@ -39,7 +39,7 @@ const clearInvalidDataCron = () => {
         lockMinuted: 59
       })
     ) {
-      checkInvalidDatasetData(addHours(new Date(), -6), addHours(new Date(), -2));
+      checkInvalidDatasetData(addHours(new Date(), 2), addHours(new Date(), 6));
     }
   });
 
@@ -50,7 +50,7 @@ const clearInvalidDataCron = () => {
         lockMinuted: 59
       })
     ) {
-      checkInvalidVector(addHours(new Date(), -6), addHours(new Date(), -2));
+      checkInvalidVector(addHours(new Date(), 2), addHours(new Date(), 6));
     }
   });
 };

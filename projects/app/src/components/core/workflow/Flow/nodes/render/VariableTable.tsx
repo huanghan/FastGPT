@@ -106,6 +106,7 @@ const VariableTable = ({
           keys={keys}
           onClose={onCloseFieldEdit}
           onSubmit={(e) => {
+            console.log(e);
             if (!!createField && onCreate) {
               onCreate(e);
             } else if (!!editField && onEdit) {

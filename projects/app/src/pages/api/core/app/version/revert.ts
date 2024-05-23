@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { NextAPI } from '@/service/middleware/entry';
+import { NextAPI } from '@/service/middle/entry';
 import { authApp } from '@fastgpt/service/support/permission/auth/app';
-import { MongoAppVersion } from '@fastgpt/service/core/app/version/schema';
+import { MongoAppVersion } from '@fastgpt/service/core/app/versionSchema';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { MongoApp } from '@fastgpt/service/core/app/schema';
 import { beforeUpdateAppFormat } from '@fastgpt/service/core/app/controller';
+import { getGuideModule, splitGuideModule } from '@fastgpt/global/core/workflow/utils';
 import { getNextTimeByCronStringAndTimezone } from '@fastgpt/global/common/string/time';
 import { PostRevertAppProps } from '@/global/core/app/api';
 
@@ -27,7 +28,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<any>): Promise<
 
   const { nodes: formatEditNodes } = beforeUpdateAppFormat({ nodes: editNodes });
 
-  const scheduledTriggerConfig = version.chatConfig.scheduledTriggerConfig;
+  const { scheduledTriggerConfig } = splitGuideModule(getGuideModule(version.nodes));
 
   await mongoSessionRun(async (session) => {
     // 为编辑中的数据创建一个版本

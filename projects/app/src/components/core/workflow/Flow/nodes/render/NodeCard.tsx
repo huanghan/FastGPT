@@ -1,15 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Box, Button, Card, Flex } from '@chakra-ui/react';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import Avatar from '@/components/Avatar';
-import type {
-  FlowNodeItemType,
-  FlowNodeTemplateType
-} from '@fastgpt/global/core/workflow/type/index.d';
+import type { FlowNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
 import { useTranslation } from 'next-i18next';
 import { useEditTitle } from '@/web/common/hooks/useEditTitle';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { FlowNodeTypeEnum } from '@fastgpt/global/core/workflow/node/constant';
+import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 import { LOGO_ICON } from '@fastgpt/global/common/system/constants';
 import { ToolTargetHandle } from './Handle/ToolHandle';
@@ -19,16 +17,12 @@ import { useDebug } from '../../hooks/useDebug';
 import { ResponseBox } from '@/components/ChatBox/WholeResponseModal';
 import EmptyTip from '@fastgpt/web/components/common/EmptyTip';
 import { getPreviewPluginModule } from '@/web/core/plugin/api';
-import { storeNode2FlowNode, updateFlowNodeVersion } from '@/web/core/workflow/utils';
+import { getErrText } from '@fastgpt/global/common/error/utils';
+import { storeNode2FlowNode } from '@/web/core/workflow/utils';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
 import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext } from '../../../context';
 import { useI18n } from '@/web/context/I18n';
-import { moduleTemplatesFlat } from '@fastgpt/global/core/workflow/template/constants';
-import { QuestionOutlineIcon } from '@chakra-ui/icons';
-import MyTooltip from '@/components/MyTooltip';
-import { isEqual } from 'lodash';
-import { useSystemStore } from '@/web/common/system/useSystemStore';
 
 type Props = FlowNodeItemType & {
   children?: React.ReactNode | React.ReactNode[] | string;
@@ -58,6 +52,7 @@ const NodeCard = (props: Props) => {
     maxW = '600px',
     nodeId,
     flowNodeType,
+    inputs,
     selected,
     menuForbid,
     isTool = false,
@@ -70,10 +65,6 @@ const NodeCard = (props: Props) => {
   const setHoverNodeId = useContextSelector(WorkflowContext, (v) => v.setHoverNodeId);
   const onUpdateNodeError = useContextSelector(WorkflowContext, (v) => v.onUpdateNodeError);
   const onChangeNode = useContextSelector(WorkflowContext, (v) => v.onChangeNode);
-  const onResetNode = useContextSelector(WorkflowContext, (v) => v.onResetNode);
-
-  const [hasNewVersion, setHasNewVersion] = useState(false);
-  const { setLoading } = useSystemStore();
 
   // custom title edit
   const { onOpenModal: onOpenCustomTitleModal, EditModal: EditTitleModal } = useEditTitle({
@@ -86,58 +77,12 @@ const NodeCard = (props: Props) => {
     [isTool, nodeList]
   );
 
-  const node = nodeList.find((node) => node.nodeId === nodeId);
-  const { openConfirm: onOpenConfirmSync, ConfirmModal: ConfirmSyncModal } = useConfirm({
-    content: appT('module.Confirm Sync')
-  });
-
-  useEffect(() => {
-    const fetchPluginModule = async () => {
-      if (node?.flowNodeType === FlowNodeTypeEnum.pluginModule) {
-        if (!node?.pluginId) return;
-        const template = await getPreviewPluginModule(node.pluginId);
-        setHasNewVersion(!!template.nodeVersion && node.nodeVersion !== template.nodeVersion);
-      } else {
-        const template = moduleTemplatesFlat.find(
-          (item) => item.flowNodeType === node?.flowNodeType
-        );
-        setHasNewVersion(node?.version !== template?.version);
-      }
-    };
-
-    fetchPluginModule();
-  }, [node]);
-
-  const template = moduleTemplatesFlat.find((item) => item.flowNodeType === node?.flowNodeType);
-
-  const onClickSyncVersion = useCallback(async () => {
-    try {
-      setLoading(true);
-      if (!node || !template) return;
-      if (node?.flowNodeType === 'pluginModule') {
-        if (!node.pluginId) return;
-        onResetNode({
-          id: nodeId,
-          node: await getPreviewPluginModule(node.pluginId)
-        });
-      } else {
-        onResetNode({
-          id: nodeId,
-          node: updateFlowNodeVersion(node, template)
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching plugin module:', error);
-    }
-    setLoading(false);
-  }, [node, nodeId, onResetNode, setLoading, template]);
-
   /* Node header */
   const Header = useMemo(() => {
     return (
       <Box position={'relative'}>
         {/* debug */}
-        <Box px={4} py={3}>
+        <Box className="custom-drag-handle" px={4} py={3}>
           {/* tool target handle */}
           {showToolHandle && <ToolTargetHandle nodeId={nodeId} />}
 
@@ -178,27 +123,6 @@ const NodeCard = (props: Props) => {
                 }}
               />
             )}
-            <Box flex={1} />
-            {hasNewVersion && (
-              <MyTooltip label={appT('app.modules.click to update')}>
-                <Button
-                  bg={'yellow.50'}
-                  color={'yellow.600'}
-                  variant={'ghost'}
-                  h={8}
-                  px={2}
-                  rounded={'6px'}
-                  fontSize={'xs'}
-                  fontWeight={'medium'}
-                  cursor={'pointer'}
-                  _hover={{ bg: 'yellow.100' }}
-                  onClick={onOpenConfirmSync(onClickSyncVersion)}
-                >
-                  <Box>{appT('app.modules.has new version')}</Box>
-                  <QuestionOutlineIcon ml={1} />
-                </Button>
-              </MyTooltip>
-            )}
           </Flex>
           <MenuRender
             nodeId={nodeId}
@@ -208,7 +132,6 @@ const NodeCard = (props: Props) => {
           />
           <NodeIntro nodeId={nodeId} intro={intro} />
         </Box>
-        <ConfirmSyncModal />
       </Box>
     );
   }, [
@@ -218,17 +141,13 @@ const NodeCard = (props: Props) => {
     t,
     name,
     menuForbid,
-    hasNewVersion,
-    appT,
-    onOpenConfirmSync,
-    onClickSyncVersion,
     pluginId,
     flowNodeType,
     intro,
-    ConfirmSyncModal,
     onOpenCustomTitleModal,
     onChangeNode,
-    toast
+    toast,
+    appT
   ]);
 
   return (
@@ -287,7 +206,13 @@ const MenuRender = React.memo(function MenuRender({
   menuForbid?: Props['menuForbid'];
 }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const { setLoading } = useSystemStore();
   const { openDebugNode, DebugInputModal } = useDebug();
+
+  const { openConfirm: onOpenConfirmSync, ConfirmModal: ConfirmSyncModal } = useConfirm({
+    content: t('module.Confirm Sync Plugin')
+  });
 
   const { openConfirm: onOpenConfirmDeleteNode, ConfirmModal: ConfirmDeleteModal } = useConfirm({
     content: t('core.module.Confirm Delete Node'),
@@ -295,6 +220,7 @@ const MenuRender = React.memo(function MenuRender({
   });
 
   const setNodes = useContextSelector(WorkflowContext, (v) => v.setNodes);
+  const onResetNode = useContextSelector(WorkflowContext, (v) => v.onResetNode);
   const setEdges = useContextSelector(WorkflowContext, (v) => v.setEdges);
 
   const onCopyNode = useCallback(
@@ -310,8 +236,7 @@ const MenuRender = React.memo(function MenuRender({
           inputs: node.data.inputs,
           outputs: node.data.outputs,
           showStatus: node.data.showStatus,
-          pluginId: node.data.pluginId,
-          version: node.data.version
+          pluginId: node.data.pluginId
         };
         return state.concat(
           storeNode2FlowNode({
@@ -325,8 +250,7 @@ const MenuRender = React.memo(function MenuRender({
               showStatus: template.showStatus,
               pluginId: template.pluginId,
               inputs: template.inputs,
-              outputs: template.outputs,
-              version: template.version
+              outputs: template.outputs
             }
           })
         );
@@ -341,6 +265,22 @@ const MenuRender = React.memo(function MenuRender({
     },
     [setEdges, setNodes]
   );
+  const onclickSyncVersion = useCallback(async () => {
+    if (!pluginId) return;
+    try {
+      setLoading(true);
+      onResetNode({
+        id: nodeId,
+        node: await getPreviewPluginModule(pluginId)
+      });
+    } catch (e) {
+      return toast({
+        status: 'error',
+        title: getErrText(e, t('plugin.Get Plugin Module Detail Failed'))
+      });
+    }
+    setLoading(false);
+  }, [nodeId, onResetNode, pluginId, setLoading, t, toast]);
 
   const Render = useMemo(() => {
     const menuList = [
@@ -364,6 +304,17 @@ const MenuRender = React.memo(function MenuRender({
               onClick: () => onCopyNode(nodeId)
             }
           ]),
+      ...(flowNodeType === FlowNodeTypeEnum.pluginModule
+        ? [
+            {
+              icon: 'common/refreshLight',
+              label: t('plugin.Synchronous version'),
+              variant: 'whiteBase',
+              onClick: onOpenConfirmSync(onclickSyncVersion)
+            }
+          ]
+        : []),
+
       ...(menuForbid?.delete
         ? []
         : [
@@ -405,22 +356,27 @@ const MenuRender = React.memo(function MenuRender({
             </Box>
           ))}
         </Box>
+        <ConfirmSyncModal />
         <ConfirmDeleteModal />
         <DebugInputModal />
       </>
     );
   }, [
-    menuForbid?.debug,
-    menuForbid?.copy,
-    menuForbid?.delete,
-    t,
-    onOpenConfirmDeleteNode,
     ConfirmDeleteModal,
+    ConfirmSyncModal,
     DebugInputModal,
-    openDebugNode,
+    flowNodeType,
+    menuForbid?.copy,
+    menuForbid?.debug,
+    menuForbid?.delete,
     nodeId,
     onCopyNode,
-    onDelNode
+    onDelNode,
+    onOpenConfirmDeleteNode,
+    onOpenConfirmSync,
+    onclickSyncVersion,
+    openDebugNode,
+    t
   ]);
 
   return Render;

@@ -123,9 +123,7 @@ export async function checkInvalidDatasetData(start: Date, end: Date) {
         continue;
       }
     } catch (error) {}
-    if (++index % 100 === 0) {
-      console.log(index);
-    }
+    console.log(++index);
   }
 }
 

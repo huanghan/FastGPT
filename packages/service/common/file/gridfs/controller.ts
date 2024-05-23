@@ -7,7 +7,7 @@ import { MongoFileSchema } from './schema';
 import { detectFileEncoding } from '@fastgpt/global/common/file/tools';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
 import { MongoRawTextBuffer } from '../../buffer/rawText/schema';
-import { readRawContentByFileBuffer } from '../read/utils';
+import { readFileRawContent } from '../read/utils';
 import { PassThrough } from 'stream';
 
 export function getGFSCollection(bucket: `${BucketNameEnum}`) {
@@ -151,12 +151,12 @@ export const readFileContentFromMongo = async ({
   teamId,
   bucketName,
   fileId,
-  isQAImport = false
+  csvFormat = false
 }: {
   teamId: string;
   bucketName: `${BucketNameEnum}`;
   fileId: string;
-  isQAImport?: boolean;
+  csvFormat?: boolean;
 }): Promise<{
   rawText: string;
   filename: string;
@@ -196,9 +196,9 @@ export const readFileContentFromMongo = async ({
     });
   })();
 
-  const { rawText } = await readRawContentByFileBuffer({
+  const { rawText } = await readFileRawContent({
     extension,
-    isQAImport,
+    csvFormat,
     teamId,
     buffer: fileBuffers,
     encoding,

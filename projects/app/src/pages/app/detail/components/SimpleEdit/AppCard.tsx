@@ -8,6 +8,7 @@ import { useToast } from '@fastgpt/web/hooks/useToast';
 import { AppSchema } from '@fastgpt/global/core/app/type.d';
 import { delModelById } from '@/web/core/app/api';
 import { useTranslation } from 'next-i18next';
+import { useAppStore } from '@/web/core/app/store/useAppStore';
 import PermissionIconText from '@/components/support/permission/IconText';
 import dynamic from 'next/dynamic';
 import Avatar from '@/components/Avatar';
@@ -15,8 +16,6 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import TagsEditModal from './TagsEditModal';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useI18n } from '@/web/context/I18n';
-import { AppContext } from '@/web/core/app/context/appContext';
-import { useContextSelector } from 'use-context-selector';
 const InfoModal = dynamic(() => import('../InfoModal'));
 
 const AppCard = ({ appId }: { appId: string }) => {
@@ -25,7 +24,7 @@ const AppCard = ({ appId }: { appId: string }) => {
   const { appT } = useI18n();
 
   const { toast } = useToast();
-  const { appDetail } = useContextSelector(AppContext, (v) => v);
+  const { appDetail } = useAppStore();
   const { feConfigs } = useSystemStore();
   const [settingAppInfo, setSettingAppInfo] = useState<AppSchema>();
   const [TeamTagsSet, setTeamTagsSet] = useState<AppSchema>();

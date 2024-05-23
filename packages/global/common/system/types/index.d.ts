@@ -66,8 +66,6 @@ export type SystemEnvType = {
   vectorMaxProcess: number;
   qaMaxProcess: number;
   pgHNSWEfSearch: number;
-  tokenWorkers: number; // token count max worker
-
   oneapiUrl?: string;
   chatApiKey?: string;
 };

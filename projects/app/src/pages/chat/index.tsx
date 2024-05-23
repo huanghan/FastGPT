@@ -128,7 +128,7 @@ const Chat = ({ appId, chatId }: { appId: string; chatId: string }) => {
     [appId, chatId, histories, pushHistory, router, setChatData, updateHistory]
   );
 
-  useQuery(['loadModels'], () => loadMyApps());
+  useQuery(['loadModels'], () => loadMyApps(false));
 
   // get chat app info
   const loadChatInfo = useCallback(
@@ -349,7 +349,7 @@ const Chat = ({ appId, chatId }: { appId: string; chatId: string }) => {
                 showEmptyIntro
                 appAvatar={chatData.app.avatar}
                 userAvatar={userInfo?.avatar}
-                chatConfig={chatData.app?.chatConfig}
+                userGuideModule={chatData.app?.userGuideModule}
                 showFileSelector={checkChatSupportSelectFileByChatModels(chatData.app.chatModels)}
                 feedbackType={'user'}
                 onStartChat={startChat}

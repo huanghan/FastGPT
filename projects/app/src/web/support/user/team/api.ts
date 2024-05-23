@@ -5,7 +5,6 @@ import {
   InviteMemberProps,
   InviteMemberResponse,
   UpdateInviteProps,
-  UpdateTeamMemberPermissionProps,
   UpdateTeamMemberProps,
   UpdateTeamProps
 } from '@fastgpt/global/support/user/team/controller.d';
@@ -42,8 +41,6 @@ export const updateInviteResult = (data: UpdateInviteProps) =>
   PUT('/proApi/support/user/team/member/updateInvite', data);
 export const delLeaveTeam = (teamId: string) =>
   DELETE('/proApi/support/user/team/member/leave', { teamId });
-export const updateMemberPermission = (data: UpdateTeamMemberPermissionProps) =>
-  PUT('/proApi/support/user/team/member/updatePermission', data);
 
 /* --------------- team tags ---------------- */
 export const getTeamsTags = () => GET<TeamTagSchema[]>(`/proApi/support/user/team/tag/list`);

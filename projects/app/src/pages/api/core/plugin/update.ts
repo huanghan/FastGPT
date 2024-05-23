@@ -7,8 +7,6 @@ import { MongoPlugin } from '@fastgpt/service/core/plugin/schema';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { ClientSession } from '@fastgpt/service/common/mongo';
 import { httpApiSchema2Plugins } from '@fastgpt/global/core/plugin/httpPlugin/utils';
-import { isEqual } from 'lodash';
-import { nanoid } from 'nanoid';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   try {
@@ -24,9 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       per: 'owner'
     });
 
-    const originPlugin = await MongoPlugin.findById(id);
-
-    let updateData = {
+    const updateData = {
       name: props.name,
       intro: props.intro,
       avatar: props.avatar,
@@ -36,26 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         modules: modules
       }),
       ...(edges?.length && { edges }),
-      metadata: props.metadata,
-      nodeVersion: originPlugin?.nodeVersion
+      metadata: props.metadata
     };
 
-    const isNodeVersionEqual =
-      isEqual(
-        originPlugin?.modules.map((module) => {
-          return { ...module, position: undefined };
-        }),
-        updateData.modules?.map((module) => {
-          return { ...module, position: undefined };
-        })
-      ) && isEqual(originPlugin?.edges, updateData.edges);
-
-    if (!isNodeVersionEqual) {
-      updateData = {
-        ...updateData,
-        nodeVersion: nanoid(6)
-      };
-    }
     if (props.metadata?.apiSchemaStr) {
       await mongoSessionRun(async (session) => {
         // update children

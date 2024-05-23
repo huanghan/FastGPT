@@ -15,7 +15,6 @@ import { v1Workflow2V2 } from '@/web/core/workflow/adapt';
 import { useBeforeunload } from '@fastgpt/web/hooks/useBeforeunload';
 import WorkflowContextProvider, { WorkflowContext } from '@/components/core/workflow/context';
 import { useContextSelector } from 'use-context-selector';
-import { AppContextProvider } from '@/web/core/app/context/appContext';
 
 type Props = { pluginId: string };
 
@@ -51,14 +50,18 @@ const Render = ({ pluginId }: Props) => {
   });
 
   useEffect(() => {
+    if (isV2Workflow) {
+      initData(JSON.parse(workflowStringData));
+    }
+  }, [initData, isV2Workflow, workflowStringData]);
+
+  useEffect(() => {
     if (!isV2Workflow && pluginDetail) {
       openConfirm(() => {
         initData(JSON.parse(JSON.stringify(v1Workflow2V2((pluginDetail.modules || []) as any))));
       })();
-    } else {
-      initData(JSON.parse(workflowStringData));
     }
-  }, [pluginDetail]);
+  }, [initData, isV2Workflow, openConfirm, pluginDetail]);
 
   useBeforeunload({
     tip: t('core.common.tip.leave page')
@@ -74,15 +77,13 @@ const Render = ({ pluginId }: Props) => {
   );
 };
 
-function Provider(props: Props) {
+export default function FlowEdit(props: any) {
   return (
-    <AppContextProvider appId={''}>
-      <WorkflowContextProvider
-        value={{ mode: 'plugin', basicNodeTemplates: pluginSystemModuleTemplates }}
-      >
-        <Render {...props} />
-      </WorkflowContextProvider>
-    </AppContextProvider>
+    <WorkflowContextProvider
+      value={{ mode: 'plugin', basicNodeTemplates: pluginSystemModuleTemplates }}
+    >
+      <Render {...props} />
+    </WorkflowContextProvider>
   );
 }
 
@@ -90,9 +91,7 @@ export async function getServerSideProps(context: any) {
   return {
     props: {
       pluginId: context?.query?.pluginId || '',
-      ...(await serviceSideProps(context, ['app', 'workflow']))
+      ...(await serviceSideProps(context))
     }
   };
 }
-
-export default Provider;

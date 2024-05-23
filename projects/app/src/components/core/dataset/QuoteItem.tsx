@@ -19,26 +19,26 @@ const scoreTheme: Record<
     color: string;
     bg: string;
     borderColor: string;
-    colorScheme: string;
+    colorSchema: string;
   }
 > = {
   '0': {
     color: '#6F5DD7',
     bg: '#F0EEFF',
     borderColor: '#D3CAFF',
-    colorScheme: 'purple'
+    colorSchema: 'purple'
   },
   '1': {
     color: '#9E53C1',
     bg: '#FAF1FF',
     borderColor: '#ECF',
-    colorScheme: 'pink'
+    colorSchema: 'pink'
   },
   '2': {
     color: '#0884DD',
     bg: '#F0FBFF',
     borderColor: '#BCE7FF',
-    colorScheme: 'blue'
+    colorSchema: 'blue'
   }
 };
 
@@ -184,7 +184,7 @@ const QuoteItem = ({
                         size="sm"
                         borderRadius={'20px'}
                         {...(scoreTheme[i] && {
-                          colorScheme: scoreTheme[i].colorScheme
+                          colorScheme: scoreTheme[i].colorSchema
                         })}
                         bg="#E8EBF0"
                       />
@@ -218,7 +218,6 @@ const QuoteItem = ({
             <RawSourceBox
               fontWeight={'bold'}
               color={'black'}
-              collectionId={quoteItem.collectionId}
               sourceName={quoteItem.sourceName}
               sourceId={quoteItem.sourceId}
               canView={canViewSource}

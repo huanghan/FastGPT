@@ -45,7 +45,6 @@ export enum NodeInputKeyEnum {
   whisper = 'whisper',
   variables = 'variables',
   scheduleTrigger = 'scheduleTrigger',
-  chatInputGuide = 'chatInputGuide',
 
   // entry
   userChatInput = 'userChatInput',
@@ -118,7 +117,6 @@ export enum NodeOutputKeyEnum {
   answerText = 'answerText', // module answer. the value will be show and save to history
   success = 'success',
   failed = 'failed',
-  error = 'error',
   text = 'system_text',
   addOutputParam = 'system_addOutputParam',
 

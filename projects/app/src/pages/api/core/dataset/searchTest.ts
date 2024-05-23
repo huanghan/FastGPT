@@ -12,7 +12,7 @@ import {
   checkTeamAIPoints,
   checkTeamReRankPermission
 } from '@fastgpt/service/support/permission/teamLimit';
-import { NextAPI } from '@/service/middleware/entry';
+import { NextAPI } from '@/service/middle/entry';
 
 async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const {

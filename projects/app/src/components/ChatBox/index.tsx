@@ -21,6 +21,7 @@ import { getErrText } from '@fastgpt/global/common/error/utils';
 import { Box, Flex, Checkbox } from '@chakra-ui/react';
 import { EventNameEnum, eventBus } from '@/web/common/utils/eventbus';
 import { chats2GPTMessages } from '@fastgpt/global/core/chat/adapt';
+import { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/index.d';
 import { VariableInputEnum } from '@fastgpt/global/core/workflow/constants';
 import { DispatchNodeResponseKeyEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { useForm } from 'react-hook-form';
@@ -44,7 +45,7 @@ import type {
   ChatBoxInputType,
   ChatBoxInputFormType
 } from './type.d';
-import ChatInput from './Input/ChatInput';
+import MessageInput from './MessageInput';
 import ChatBoxDivider from '../core/chat/Divider';
 import { OutLinkChatAuthProps } from '@fastgpt/global/support/permission/chat';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
@@ -57,8 +58,7 @@ import ChatProvider, { useChatProviderStore } from './Provider';
 import ChatItem from './components/ChatItem';
 
 import dynamic from 'next/dynamic';
-import { useCreation } from 'ahooks';
-import { AppChatConfigType } from '@fastgpt/global/core/app/type';
+import { useCreation, useUpdateEffect } from 'ahooks';
 
 const ResponseTags = dynamic(() => import('./ResponseTags'));
 const FeedbackModal = dynamic(() => import('./FeedbackModal'));
@@ -81,7 +81,7 @@ type Props = OutLinkChatAuthProps & {
   showEmptyIntro?: boolean;
   appAvatar?: string;
   userAvatar?: string;
-  chatConfig?: AppChatConfigType;
+  userGuideModule?: StoreNodeItemType;
   showFileSelector?: boolean;
   active?: boolean; // can use
   appId: string;
@@ -149,7 +149,7 @@ const ChatBox = (
 
   const {
     welcomeText,
-    variableList,
+    variableNodes,
     questionGuide,
     startSegmentedAudio,
     finishSegmentedAudio,
@@ -174,8 +174,8 @@ const ChatBox = (
 
   /* variable */
   const filterVariableNodes = useCreation(
-    () => variableList.filter((item) => item.type !== VariableInputEnum.custom),
-    [variableList]
+    () => variableNodes.filter((item) => item.type !== VariableInputEnum.custom),
+    [variableNodes]
   );
 
   // 滚动到底部
@@ -390,9 +390,9 @@ const ChatBox = (
             return;
           }
 
-          // delete invalid variables， 只保留在 variableList 中的变量
+          // delete invalid variables， 只保留在 variableNodes 中的变量
           const requestVariables: Record<string, any> = {};
-          variableList?.forEach((item) => {
+          variableNodes?.forEach((item) => {
             requestVariables[item.key] = variables[item.key] || '';
           });
 
@@ -566,7 +566,7 @@ const ChatBox = (
       startSegmentedAudio,
       t,
       toast,
-      variableList
+      variableNodes
     ]
   );
 
@@ -907,7 +907,7 @@ const ChatBox = (
           {!!filterVariableNodes?.length && (
             <VariableInput
               appAvatar={appAvatar}
-              variableList={filterVariableNodes}
+              variableNodes={filterVariableNodes}
               chatForm={chatForm}
               onSubmitVariables={(data) => {
                 setValue('chatStarted', true);
@@ -1000,7 +1000,7 @@ const ChatBox = (
       </Box>
       {/* message input */}
       {onStartChat && (chatStarted || filterVariableNodes.length === 0) && active && (
-        <ChatInput
+        <MessageInput
           onSendMessage={sendPrompt}
           onStop={() => chatController.current?.abort('stop')}
           TextareaDom={TextareaDom}

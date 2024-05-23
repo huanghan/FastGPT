@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
+import { ImportDataComponentProps } from '@/web/core/dataset/type.d';
+
 import dynamic from 'next/dynamic';
+import { useImportStore } from '../Provider';
 import { useTranslation } from 'next-i18next';
 import { useForm } from 'react-hook-form';
 import { Box, Button, Flex, Input, Link, Textarea } from '@chakra-ui/react';
@@ -9,21 +12,17 @@ import { LinkCollectionIcon } from '@fastgpt/global/core/dataset/constants';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { getDocPath } from '@/web/common/system/doc';
 import Loading from '@fastgpt/web/components/common/MyLoading';
-import { useContextSelector } from 'use-context-selector';
-import { DatasetImportContext } from '../Context';
 
 const DataProcess = dynamic(() => import('../commonProgress/DataProcess'), {
   loading: () => <Loading fixed={false} />
 });
 const Upload = dynamic(() => import('../commonProgress/Upload'));
 
-const LinkCollection = () => {
-  const activeStep = useContextSelector(DatasetImportContext, (v) => v.activeStep);
-
+const LinkCollection = ({ activeStep, goToNext }: ImportDataComponentProps) => {
   return (
     <>
-      {activeStep === 0 && <CustomLinkImport />}
-      {activeStep === 1 && <DataProcess showPreviewChunks />}
+      {activeStep === 0 && <CustomLinkImport goToNext={goToNext} />}
+      {activeStep === 1 && <DataProcess showPreviewChunks={false} goToNext={goToNext} />}
       {activeStep === 2 && <Upload />}
     </>
   );
@@ -31,13 +30,10 @@ const LinkCollection = () => {
 
 export default React.memo(LinkCollection);
 
-const CustomLinkImport = () => {
+const CustomLinkImport = ({ goToNext }: { goToNext: () => void }) => {
   const { t } = useTranslation();
   const { feConfigs } = useSystemStore();
-  const { goToNext, sources, setSources, processParamsForm } = useContextSelector(
-    DatasetImportContext,
-    (v) => v
-  );
+  const { sources, setSources, processParamsForm } = useImportStore();
   const { register, reset, handleSubmit, watch } = useForm({
     defaultValues: {
       link: ''

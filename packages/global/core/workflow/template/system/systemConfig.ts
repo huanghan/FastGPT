@@ -1,6 +1,10 @@
-import { FlowNodeTypeEnum } from '../../node/constant';
+import { FlowNodeInputTypeEnum, FlowNodeTypeEnum } from '../../node/constant';
 import { FlowNodeTemplateType } from '../../type/index.d';
-import { FlowNodeTemplateTypeEnum, WorkflowIOValueTypeEnum } from '../../constants';
+import {
+  WorkflowIOValueTypeEnum,
+  NodeInputKeyEnum,
+  FlowNodeTemplateTypeEnum
+} from '../../constants';
 import { getHandleConfig } from '../utils';
 
 export const SystemConfigNode: FlowNodeTemplateType = {
@@ -14,7 +18,44 @@ export const SystemConfigNode: FlowNodeTemplateType = {
   intro: '可以配置应用的系统参数。',
   unique: true,
   forbidDelete: true,
-  version: '481',
-  inputs: [],
+  inputs: [
+    {
+      key: NodeInputKeyEnum.welcomeText,
+      renderTypeList: [FlowNodeInputTypeEnum.hidden],
+      valueType: WorkflowIOValueTypeEnum.string,
+      label: 'core.app.Welcome Text'
+    },
+    {
+      key: NodeInputKeyEnum.variables,
+      renderTypeList: [FlowNodeInputTypeEnum.hidden],
+      valueType: WorkflowIOValueTypeEnum.any,
+      label: 'core.module.Variable',
+      value: []
+    },
+    {
+      key: NodeInputKeyEnum.questionGuide,
+      valueType: WorkflowIOValueTypeEnum.boolean,
+      renderTypeList: [FlowNodeInputTypeEnum.hidden],
+      label: ''
+    },
+    {
+      key: NodeInputKeyEnum.tts,
+      renderTypeList: [FlowNodeInputTypeEnum.hidden],
+      valueType: WorkflowIOValueTypeEnum.any,
+      label: ''
+    },
+    {
+      key: NodeInputKeyEnum.whisper,
+      renderTypeList: [FlowNodeInputTypeEnum.hidden],
+      valueType: WorkflowIOValueTypeEnum.any,
+      label: ''
+    },
+    {
+      key: NodeInputKeyEnum.scheduleTrigger,
+      renderTypeList: [FlowNodeInputTypeEnum.hidden],
+      valueType: WorkflowIOValueTypeEnum.any,
+      label: ''
+    }
+  ],
   outputs: []
 };

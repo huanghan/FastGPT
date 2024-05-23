@@ -22,13 +22,12 @@ import { RuntimeEdgeItemType, StoreEdgeItemType } from './edge';
 import { NextApiResponse } from 'next';
 
 export type FlowNodeCommonType = {
-  flowNodeType: FlowNodeTypeEnum; // render node card
+  flowNodeType: `${FlowNodeTypeEnum}`; // render node card
 
   avatar?: string;
   name: string;
   intro?: string; // template list intro
   showStatus?: boolean; // chatting response step status
-  version: string;
 
   // data
   inputs: FlowNodeInputItemType[];
@@ -64,7 +63,6 @@ export type FlowNodeTemplateType = FlowNodeCommonType & {
   // action
   forbidDelete?: boolean; // forbid delete
   unique?: boolean;
-  nodeVersion?: string;
 };
 export type FlowNodeItemType = FlowNodeTemplateType & {
   nodeId: string;

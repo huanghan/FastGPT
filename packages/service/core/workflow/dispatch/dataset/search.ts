@@ -15,7 +15,6 @@ import { getHistories } from '../utils';
 import { datasetSearchQueryExtension } from '../../../dataset/search/utils';
 import { ChatNodeUsageType } from '@fastgpt/global/support/wallet/bill/type';
 import { checkTeamReRankPermission } from '../../../../support/permission/teamLimit';
-import { MongoDataset } from '../../../dataset/schema';
 
 type DatasetSearchProps = ModuleDispatchProps<{
   [NodeInputKeyEnum.datasetSelectList]: SelectedDatasetType;
@@ -80,9 +79,7 @@ export async function dispatchDatasetSearch(
   // console.log(concatQueries, rewriteQuery, aiExtensionResult);
 
   // get vector
-  const vectorModel = getVectorModel(
-    (await MongoDataset.findById(datasets[0].datasetId, 'vectorModel').lean())?.vectorModel
-  );
+  const vectorModel = getVectorModel(datasets[0]?.vectorModel?.model);
 
   // start search
   const {

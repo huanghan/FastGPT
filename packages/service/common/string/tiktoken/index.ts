@@ -12,34 +12,27 @@ import { getNanoid } from '@fastgpt/global/common/string/tools';
 import { addLog } from '../../system/log';
 
 export const getTiktokenWorker = () => {
-  const maxWorkers = global.systemEnv?.tokenWorkers || 20;
-
-  if (!global.tiktokenWorkers) {
-    global.tiktokenWorkers = [];
-  }
-
-  if (global.tiktokenWorkers.length >= maxWorkers) {
-    return global.tiktokenWorkers[Math.floor(Math.random() * global.tiktokenWorkers.length)];
+  if (global.tiktokenWorker) {
+    return global.tiktokenWorker;
   }
 
   const worker = getWorker(WorkerNameEnum.countGptMessagesTokens);
 
-  const i = global.tiktokenWorkers.push({
-    index: global.tiktokenWorkers.length,
-    worker,
-    callbackMap: {}
-  });
-
   worker.on('message', ({ id, data }: { id: string; data: number }) => {
-    const callback = global.tiktokenWorkers[i - 1]?.callbackMap?.[id];
+    const callback = global.tiktokenWorker?.callbackMap?.[id];
 
     if (callback) {
       callback?.(data);
-      delete global.tiktokenWorkers[i - 1].callbackMap[id];
+      delete global.tiktokenWorker.callbackMap[id];
     }
   });
 
-  return global.tiktokenWorkers[i - 1];
+  global.tiktokenWorker = {
+    worker,
+    callbackMap: {}
+  };
+
+  return global.tiktokenWorker;
 };
 
 export const countGptMessagesTokens = (
@@ -47,46 +40,32 @@ export const countGptMessagesTokens = (
   tools?: ChatCompletionTool[],
   functionCall?: ChatCompletionCreateParams.Function[]
 ) => {
-  return new Promise<number>(async (resolve) => {
-    try {
-      const start = Date.now();
+  return new Promise<number>((resolve) => {
+    const start = Date.now();
 
-      const { worker, callbackMap } = getTiktokenWorker();
+    const { worker, callbackMap } = getTiktokenWorker();
+    const id = getNanoid();
 
-      const id = getNanoid();
-
-      const timer = setTimeout(() => {
-        console.log('Count token Time out');
-        resolve(
-          messages.reduce((sum, item) => {
-            if (item.content) {
-              return sum + item.content.length * 0.5;
-            }
-            return sum;
-          }, 0)
-        );
-        delete callbackMap[id];
-      }, 60000);
-
-      callbackMap[id] = (data) => {
-        // 检测是否有内存泄漏
-        addLog.info(`Count token time: ${Date.now() - start}, token: ${data}`);
-        // console.log(process.memoryUsage());
-
-        resolve(data);
-        clearTimeout(timer);
-      };
-
-      // 可以进一步优化(传递100w token数据,实际需要300ms,较慢)
-      worker.postMessage({
-        id,
-        messages,
-        tools,
-        functionCall
-      });
-    } catch (error) {
+    const timer = setTimeout(() => {
       resolve(0);
-    }
+      delete callbackMap[id];
+    }, 300);
+
+    callbackMap[id] = (data) => {
+      resolve(data);
+      clearTimeout(timer);
+
+      // 检测是否有内存泄漏
+      // addLog.info(`Count token time: ${Date.now() - start}, token: ${data}`);
+      // console.log(process.memoryUsage());
+    };
+
+    worker.postMessage({
+      id,
+      messages,
+      tools,
+      functionCall
+    });
   });
 };
 

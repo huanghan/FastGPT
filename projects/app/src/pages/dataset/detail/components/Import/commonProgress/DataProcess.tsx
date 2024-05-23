@@ -20,20 +20,23 @@ import LeftRadio from '@fastgpt/web/components/common/Radio/LeftRadio';
 import { TrainingTypeMap } from '@fastgpt/global/core/dataset/constants';
 import { ImportProcessWayEnum } from '@/web/core/dataset/constants';
 import MyTooltip from '@/components/MyTooltip';
+import { useImportStore } from '../Provider';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import MyModal from '@fastgpt/web/components/common/MyModal';
 import { Prompt_AgentQA } from '@fastgpt/global/core/ai/prompt/agent';
 import Preview from '../components/Preview';
 import Tag from '@fastgpt/web/components/common/Tag/index';
-import { useContextSelector } from 'use-context-selector';
-import { DatasetImportContext } from '../Context';
 
-function DataProcess({ showPreviewChunks = true }: { showPreviewChunks: boolean }) {
+function DataProcess({
+  showPreviewChunks = true,
+  goToNext
+}: {
+  showPreviewChunks: boolean;
+  goToNext: () => void;
+}) {
   const { t } = useTranslation();
   const { feConfigs } = useSystemStore();
-
   const {
-    goToNext,
     processParamsForm,
     chunkSizeField,
     minChunkSize,
@@ -41,7 +44,7 @@ function DataProcess({ showPreviewChunks = true }: { showPreviewChunks: boolean 
     showPromptInput,
     maxChunkSize,
     priceTip
-  } = useContextSelector(DatasetImportContext, (v) => v);
+  } = useImportStore();
   const { getValues, setValue, register } = processParamsForm;
   const [refresh, setRefresh] = useState(false);
 

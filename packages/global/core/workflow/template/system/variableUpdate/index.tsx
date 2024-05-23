@@ -18,7 +18,6 @@ export const VariableUpdateNode: FlowNodeTemplateType = {
   intro: '可以更新指定节点的输出值或更新全局变量',
   showStatus: true,
   isTool: false,
-  version: '481',
   inputs: [
     {
       key: NodeInputKeyEnum.updateList,

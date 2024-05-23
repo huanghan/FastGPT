@@ -4,11 +4,11 @@ import {
   DraggableStateSnapshot
 } from '@fastgpt/web/components/common/DndDrag/index';
 import Container from '../../components/Container';
-import { MinusIcon, SmallAddIcon } from '@chakra-ui/icons';
+import { DragHandleIcon, MinusIcon, SmallAddIcon } from '@chakra-ui/icons';
 import { IfElseListItemType } from '@fastgpt/global/core/workflow/template/system/ifElse/type';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import { ReferenceValueProps } from '@fastgpt/global/core/workflow/type/io';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 import { ReferSelector, useReference } from '../render/RenderInput/templates/Reference';
 import { WorkflowIOValueTypeEnum } from '@fastgpt/global/core/workflow/constants';
 import {
@@ -28,9 +28,8 @@ import MyInput from '@/components/MyInput';
 import { getElseIFLabel, getHandleId } from '@fastgpt/global/core/workflow/utils';
 import { SourceHandle } from '../render/Handle';
 import { Position, useReactFlow } from 'reactflow';
-import { getRefData } from '@/web/core/workflow/utils';
+import { getReferenceDataValueType } from '@/web/core/workflow/utils';
 import DragIcon from '@fastgpt/web/components/common/DndDrag/DragIcon';
-import { AppContext } from '@/web/core/app/context/appContext';
 
 const ListItem = ({
   provided,
@@ -51,11 +50,16 @@ const ListItem = ({
 }) => {
   const { t } = useTranslation();
   const { getZoom } = useReactFlow();
-  const onDelEdge = useContextSelector(WorkflowContext, (v) => v.onDelEdge);
-  const handleId = getHandleId(nodeId, 'source', getElseIFLabel(conditionIndex));
 
-  const Render = useMemo(() => {
-    return (
+  return (
+    <Box
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      style={{
+        ...provided.draggableProps.style,
+        opacity: snapshot.isDragging ? 0.8 : 1
+      }}
+    >
       <Flex
         alignItems={'center'}
         position={'relative'}
@@ -64,10 +68,7 @@ const ListItem = ({
       >
         <Container w={snapshot.isDragging ? '' : 'full'} className="nodrag">
           <Flex mb={4} alignItems={'center'}>
-            <DragIcon
-              visibility={ifElseList.length > 1 ? 'visible' : 'hidden'}
-              provided={provided}
-            />
+            {ifElseList.length > 1 && <DragIcon provided={provided} />}
             <Box color={'black'} fontSize={'lg'} ml={2}>
               {getElseIFLabel(conditionIndex)}
             </Box>
@@ -108,10 +109,6 @@ const ListItem = ({
                 color={'myGray.400'}
                 onClick={() => {
                   onUpdateIfElseList(ifElseList.filter((_, index) => index !== conditionIndex));
-                  onDelEdge({
-                    nodeId,
-                    sourceHandle: handleId
-                  });
                 }}
               />
             )}
@@ -188,21 +185,21 @@ const ListItem = ({
                         onChange={(e) => {
                           onUpdateIfElseList(
                             ifElseList.map((ifElse, index) => {
-                              return {
-                                ...ifElse,
-                                list:
-                                  index === conditionIndex
-                                    ? ifElse.list.map((item, index) => {
-                                        if (index === i) {
-                                          return {
-                                            ...item,
-                                            value: e
-                                          };
-                                        }
-                                        return item;
-                                      })
-                                    : ifElse.list
-                              };
+                              if (index === conditionIndex) {
+                                return {
+                                  ...ifElse,
+                                  list: ifElse.list.map((item, index) => {
+                                    if (index === i) {
+                                      return {
+                                        ...item,
+                                        value: e
+                                      };
+                                    }
+                                    return item;
+                                  })
+                                };
+                              }
+                              return ifElse;
                             })
                           );
                         }}
@@ -266,38 +263,12 @@ const ListItem = ({
         {!snapshot.isDragging && (
           <SourceHandle
             nodeId={nodeId}
-            handleId={handleId}
+            handleId={getHandleId(nodeId, 'source', getElseIFLabel(conditionIndex))}
             position={Position.Right}
             translate={[18, 0]}
           />
         )}
       </Flex>
-    );
-  }, [
-    conditionIndex,
-    conditionItem.condition,
-    conditionItem.list,
-    getZoom,
-    handleId,
-    ifElseList,
-    nodeId,
-    onDelEdge,
-    onUpdateIfElseList,
-    provided,
-    snapshot.isDragging,
-    t
-  ]);
-
-  return (
-    <Box
-      ref={provided.innerRef}
-      {...provided.draggableProps}
-      style={{
-        ...provided.draggableProps.style,
-        opacity: snapshot.isDragging ? 0.8 : 1
-      }}
-    >
-      {Render}
     </Box>
   );
 };
@@ -343,17 +314,15 @@ const ConditionSelect = ({
 }) => {
   const { t } = useTranslation();
   const nodeList = useContextSelector(WorkflowContext, (v) => v.nodeList);
-  const appDetail = useContextSelector(AppContext, (v) => v.appDetail);
 
   // get condition type
-  const { valueType, required } = useMemo(() => {
-    return getRefData({
+  const valueType = useMemo(() => {
+    return getReferenceDataValueType({
       variable,
       nodeList,
-      chatConfig: appDetail.chatConfig,
       t
     });
-  }, [appDetail.chatConfig, nodeList, t, variable]);
+  }, [nodeList, t, variable]);
 
   const conditionList = useMemo(() => {
     if (valueType === WorkflowIOValueTypeEnum.string) return stringConditionList;
@@ -376,22 +345,11 @@ const ConditionSelect = ({
 
     return [];
   }, [valueType]);
-  const filterQuiredConditionList = useMemo(() => {
-    if (required) {
-      return conditionList.filter(
-        (item) =>
-          item.value !== VariableConditionEnum.isEmpty &&
-          item.value !== VariableConditionEnum.isNotEmpty
-      );
-    }
-    return conditionList;
-  }, [conditionList, required]);
 
   return (
     <MySelect
-      className="nowheel"
       w={'100%'}
-      list={filterQuiredConditionList}
+      list={conditionList}
       value={condition}
       onchange={onSelect}
       placeholder="选择条件"
@@ -429,39 +387,35 @@ const ConditionValueInput = ({
     return output.valueType;
   }, [nodeList, variable]);
 
-  const Render = useMemo(() => {
-    if (valueType === WorkflowIOValueTypeEnum.boolean) {
-      return (
-        <MySelect
-          list={[
-            { label: 'True', value: 'true' },
-            { label: 'False', value: 'false' }
-          ]}
-          onchange={onChange}
-          value={value}
-          placeholder={'选择值'}
-          isDisabled={
-            condition === VariableConditionEnum.isEmpty ||
-            condition === VariableConditionEnum.isNotEmpty
-          }
-        />
-      );
-    } else {
-      return (
-        <MyInput
-          value={value}
-          placeholder={'输入值'}
-          w={'100%'}
-          bg={'white'}
-          isDisabled={
-            condition === VariableConditionEnum.isEmpty ||
-            condition === VariableConditionEnum.isNotEmpty
-          }
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-    }
-  }, [condition, onChange, value, valueType]);
-
-  return Render;
+  if (valueType === WorkflowIOValueTypeEnum.boolean) {
+    return (
+      <MySelect
+        list={[
+          { label: 'True', value: 'true' },
+          { label: 'False', value: 'false' }
+        ]}
+        onchange={onChange}
+        value={value}
+        placeholder={'选择值'}
+        isDisabled={
+          condition === VariableConditionEnum.isEmpty ||
+          condition === VariableConditionEnum.isNotEmpty
+        }
+      />
+    );
+  } else {
+    return (
+      <MyInput
+        value={value}
+        placeholder={'输入值'}
+        w={'100%'}
+        bg={'white'}
+        isDisabled={
+          condition === VariableConditionEnum.isEmpty ||
+          condition === VariableConditionEnum.isNotEmpty
+        }
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
+  }
 };

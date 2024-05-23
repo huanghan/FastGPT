@@ -47,7 +47,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       name: plugin.name,
       intro: plugin.intro,
       showStatus: false,
-      version: '481',
       inputs: [],
       outputs: []
     }));

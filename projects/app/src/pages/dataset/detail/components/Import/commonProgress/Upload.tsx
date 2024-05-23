@@ -11,39 +11,37 @@ import {
   Flex,
   Button
 } from '@chakra-ui/react';
+import { useImportStore, type FormType } from '../Provider';
 import { ImportDataSourceEnum } from '@fastgpt/global/core/dataset/constants';
 import { useTranslation } from 'next-i18next';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import { useRequest } from '@fastgpt/web/hooks/useRequest';
+import { useDatasetStore } from '@/web/core/dataset/store/dataset';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { useRouter } from 'next/router';
 import { TabEnum } from '../../../index';
 import {
   postCreateDatasetCsvTableCollection,
-  postCreateDatasetExternalFileCollection,
   postCreateDatasetFileCollection,
   postCreateDatasetLinkCollection,
   postCreateDatasetTextCollection
 } from '@/web/core/dataset/api';
 import Tag from '@fastgpt/web/components/common/Tag/index';
 import { useI18n } from '@/web/context/I18n';
-import { useContextSelector } from 'use-context-selector';
-import { DatasetPageContext } from '@/web/core/dataset/context/datasetPageContext';
-import { DatasetImportContext, type ImportFormType } from '../Context';
 
 const Upload = () => {
   const { t } = useTranslation();
   const { fileT } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
-  const datasetDetail = useContextSelector(DatasetPageContext, (v) => v.datasetDetail);
+  const { datasetDetail } = useDatasetStore();
   const { importSource, parentId, sources, setSources, processParamsForm, chunkSize } =
-    useContextSelector(DatasetImportContext, (v) => v);
+    useImportStore();
 
   const { handleSubmit } = processParamsForm;
 
   const { mutate: startUpload, isLoading } = useRequest({
-    mutationFn: async ({ mode, customSplitChar, qaPrompt, webSelector }: ImportFormType) => {
+    mutationFn: async ({ mode, customSplitChar, qaPrompt, webSelector }: FormType) => {
       if (sources.length === 0) return;
       const filterWaitingSources = sources.filter((item) => item.createStatus === 'waiting');
 
@@ -94,13 +92,6 @@ const Upload = () => {
           await postCreateDatasetCsvTableCollection({
             ...commonParams,
             fileId: item.dbFileId
-          });
-        } else if (importSource === ImportDataSourceEnum.externalFile && item.externalFileUrl) {
-          await postCreateDatasetExternalFileCollection({
-            ...commonParams,
-            externalFileUrl: item.externalFileUrl,
-            externalFileId: item.externalFileId,
-            filename: item.sourceName
           });
         }
 

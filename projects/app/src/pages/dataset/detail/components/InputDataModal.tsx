@@ -20,7 +20,7 @@ import { getDefaultIndex } from '@fastgpt/global/core/dataset/utils';
 import { DatasetDataIndexItemType } from '@fastgpt/global/core/dataset/type';
 import SideTabs from '@/components/SideTabs';
 import DeleteIcon from '@fastgpt/web/components/common/Icon/delete';
-import { defaultCollectionDetail } from '@/web/core/dataset/constants';
+import { defaultCollectionDetail } from '@/constants/dataset';
 import { getDocPath } from '@/web/common/system/doc';
 import RawSourceBox from '@/components/core/dataset/RawSourceBox';
 import MyBox from '@fastgpt/web/components/common/MyBox';
@@ -237,7 +237,6 @@ const InputDataModal = ({
             w={'210px'}
             className="textEllipsis3"
             whiteSpace={'pre-wrap'}
-            collectionId={collection._id}
             sourceName={collection.sourceName}
             sourceId={collection.sourceId}
             mb={6}

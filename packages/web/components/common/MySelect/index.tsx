@@ -98,7 +98,6 @@ const MySelect = (
         </MenuButton>
 
         <MenuList
-          className={props.className}
           minW={(() => {
             const w = ref.current?.clientWidth;
             if (w) {

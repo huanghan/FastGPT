@@ -1,16 +1,14 @@
 import React, { useMemo } from 'react';
-import { Box, Flex } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { ImportSourceItemType } from '@/web/core/dataset/type';
 import { useQuery } from '@tanstack/react-query';
 import MyRightDrawer from '@fastgpt/web/components/common/MyDrawer/MyRightDrawer';
 import { getPreviewChunks } from '@/web/core/dataset/api';
+import { useImportStore } from '../Provider';
 import { ImportDataSourceEnum } from '@fastgpt/global/core/dataset/constants';
 import { splitText2Chunks } from '@fastgpt/global/common/string/textSplitter';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { getErrText } from '@fastgpt/global/common/error/utils';
-import { useContextSelector } from 'use-context-selector';
-import { DatasetImportContext } from '../Context';
-import { importType2ReadType } from '@fastgpt/global/core/dataset/read';
 
 const PreviewChunks = ({
   previewSource,
@@ -20,15 +18,24 @@ const PreviewChunks = ({
   onClose: () => void;
 }) => {
   const { toast } = useToast();
-  const { importSource, chunkSize, chunkOverlapRatio, processParamsForm } = useContextSelector(
-    DatasetImportContext,
-    (v) => v
-  );
+  const { importSource, chunkSize, chunkOverlapRatio, processParamsForm } = useImportStore();
 
   const { data = [], isLoading } = useQuery(
     ['previewSource'],
     () => {
-      if (importSource === ImportDataSourceEnum.fileCustom) {
+      if (
+        importSource === ImportDataSourceEnum.fileLocal ||
+        importSource === ImportDataSourceEnum.csvTable ||
+        importSource === ImportDataSourceEnum.fileLink
+      ) {
+        return getPreviewChunks({
+          type: importSource,
+          sourceId: previewSource.dbFileId || previewSource.link || '',
+          chunkSize,
+          overlapRatio: chunkOverlapRatio,
+          customSplitChar: processParamsForm.getValues('customSplitChar')
+        });
+      } else if (importSource === ImportDataSourceEnum.fileCustom) {
         const customSplitChar = processParamsForm.getValues('customSplitChar');
         const { chunks } = splitText2Chunks({
           text: previewSource.rawText || '',
@@ -41,29 +48,7 @@ const PreviewChunks = ({
           a: ''
         }));
       }
-      if (importSource === ImportDataSourceEnum.csvTable) {
-        return getPreviewChunks({
-          type: importType2ReadType(importSource),
-          sourceId:
-            previewSource.dbFileId || previewSource.link || previewSource.externalFileUrl || '',
-          chunkSize,
-          overlapRatio: chunkOverlapRatio,
-          customSplitChar: processParamsForm.getValues('customSplitChar'),
-          selector: processParamsForm.getValues('webSelector'),
-          isQAImport: true
-        });
-      }
-
-      return getPreviewChunks({
-        type: importType2ReadType(importSource),
-        sourceId:
-          previewSource.dbFileId || previewSource.link || previewSource.externalFileUrl || '',
-        chunkSize,
-        overlapRatio: chunkOverlapRatio,
-        customSplitChar: processParamsForm.getValues('customSplitChar'),
-        selector: processParamsForm.getValues('webSelector'),
-        isQAImport: false
-      });
+      return [];
     },
     {
       onError(err) {

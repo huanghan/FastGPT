@@ -7,15 +7,11 @@ import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 import { v1Workflow2V2 } from '@/web/core/workflow/adapt';
 import WorkflowContextProvider, { WorkflowContext } from '@/components/core/workflow/context';
 import { useContextSelector } from 'use-context-selector';
-import { AppContext } from '@/web/core/app/context/appContext';
-import { useMount } from 'ahooks';
 
-type Props = { onClose: () => void };
+type Props = { app: AppSchema; onClose: () => void };
 
-const Render = ({ onClose }: Props) => {
-  const appDetail = useContextSelector(AppContext, (e) => e.appDetail);
-
-  const isV2Workflow = appDetail?.version === 'v2';
+const Render = ({ app, onClose }: Props) => {
+  const isV2Workflow = app?.version === 'v2';
   const { openConfirm, ConfirmModal } = useConfirm({
     showCancel: false,
     content:
@@ -25,23 +21,26 @@ const Render = ({ onClose }: Props) => {
   const initData = useContextSelector(WorkflowContext, (v) => v.initData);
 
   const workflowStringData = JSON.stringify({
-    nodes: appDetail.modules || [],
-    edges: appDetail.edges || []
+    nodes: app.modules || [],
+    edges: app.edges || []
   });
 
-  useMount(() => {
+  useEffect(() => {
+    if (!isV2Workflow) return;
+    initData(JSON.parse(workflowStringData));
+  }, [isV2Workflow, initData, app._id]);
+
+  useEffect(() => {
     if (!isV2Workflow) {
       openConfirm(() => {
-        initData(JSON.parse(JSON.stringify(v1Workflow2V2((appDetail.modules || []) as any))));
+        initData(JSON.parse(JSON.stringify(v1Workflow2V2((app.modules || []) as any))));
       })();
-    } else {
-      initData(JSON.parse(workflowStringData));
     }
-  });
+  }, [app.modules, initData, isV2Workflow, openConfirm]);
 
   const memoRender = useMemo(() => {
-    return <Flow Header={<Header onClose={onClose} />} />;
-  }, [onClose]);
+    return <Flow Header={<Header app={app} onClose={onClose} />} />;
+  }, [app, onClose]);
 
   return (
     <>
@@ -52,13 +51,12 @@ const Render = ({ onClose }: Props) => {
 };
 
 export default React.memo(function FlowEdit(props: Props) {
-  const appDetail = useContextSelector(AppContext, (e) => e.appDetail);
-  const filterAppIds = useMemo(() => [appDetail._id], [appDetail._id]);
+  const filterAppIds = useMemo(() => [props.app._id], [props.app._id]);
 
   return (
     <WorkflowContextProvider
       value={{
-        appId: appDetail._id,
+        appId: props.app._id,
         mode: 'app',
         filterAppIds,
         basicNodeTemplates: appSystemModuleTemplates

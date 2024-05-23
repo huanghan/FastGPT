@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import { getErrText } from '@fastgpt/global/common/error/utils';
 import type { AppTTSConfigType } from '@fastgpt/global/core/app/type.d';
-import { TTSTypeEnum } from '@/web/core/app/constants';
+import { TTSTypeEnum } from '@/constants/app';
 import { useTranslation } from 'next-i18next';
 import type { OutLinkChatAuthProps } from '@fastgpt/global/support/permission/chat.d';
+import { getToken } from '@/web/support/user/auth';
 import { useMount } from 'ahooks';
 
 const contentType = 'audio/mpeg';
@@ -40,7 +41,8 @@ export const useAudioPlay = (props?: OutLinkChatAuthProps & { ttsConfig?: AppTTS
       const response = await fetch('/api/core/chat/item/getSpeech', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          token: getToken()
         },
         signal: audioController.current.signal,
         body: JSON.stringify({
