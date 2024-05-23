@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import Markdown, { CodeClassName } from '@/components/Markdown';
+
 import { Box, Flex, Link, Progress } from '@chakra-ui/react';
 import RawSourceBox from '@/components/core/dataset/RawSourceBox';
 import type { SearchDataResponseItemType } from '@fastgpt/global/core/dataset/type.d';
@@ -196,7 +198,12 @@ const QuoteItem = ({
         </Flex>
 
         <Box flex={'1 0 0'}>
-          <Box color={'black'}>{quoteItem.q}</Box>
+          <Box color={'black'} fontFamily={'Arial'}> 
+          <Markdown
+            source={quoteItem.q}
+            showAnimation={false}
+          />  
+          </Box>
           <Box color={'myGray.600'}>{quoteItem.a}</Box>
         </Box>
 

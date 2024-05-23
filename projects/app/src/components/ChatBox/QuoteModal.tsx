@@ -74,23 +74,42 @@ export const QuoteList = React.memo(function QuoteList({
   showDetail: boolean;
 }) {
   const theme = useTheme();
-
+  const formatMD = (str: string) => {
+    str = str.replace(/^标题:/gm, '**标题**: ');
+    str = str.replace(/^作者:/gm, '**作者**: ');
+    str = str.replace(/^关键词:/gm, '**关键词**: ');
+    str = str.replace(/^摘要:/gm, '**摘要**: \n');
+    str = str.replace(/^期刊:/gm, '**期刊**: ');
+    str = str.replace(/^时间:/gm, '**发表时间**: ');
+    str = str.replace(/^地址URL:/gm, '**论文链接**: ');
+    
+    return str
+  }
   return (
     <>
-      {rawSearch.map((item, i) => (
-        <Box
-          key={i}
-          flex={'1 0 0'}
-          p={2}
-          borderRadius={'sm'}
-          border={theme.borders.base}
-          _notLast={{ mb: 2 }}
-          _hover={{ '& .hover-data': { display: 'flex' } }}
-          bg={i % 2 === 0 ? 'white' : 'myWhite.500'}
-        >
-          <QuoteItem quoteItem={item} canViewSource={showDetail} linkToDataset={showDetail} />
-        </Box>
-      ))}
+      {rawSearch.map((item, i) => {
+        // 在这里处理 item
+        const newItem = {
+          ...item,
+          a: '', // 不显示答案
+          q: formatMD(item.q), // 格式化问题
+        };
+
+        return (
+          <Box
+            key={i}
+            flex={'1 0 0'}
+            p={2}
+            borderRadius={'sm'}
+            border={theme.borders.base}
+            _notLast={{ mb: 2 }}
+            _hover={{ '& .hover-data': { display: 'flex' } }}
+            bg={i % 2 === 0 ? 'white' : 'myWhite.500'}
+          >
+            <QuoteItem quoteItem={newItem} canViewSource={showDetail} linkToDataset={showDetail} />
+          </Box>
+        );
+      })}
     </>
   );
 });
