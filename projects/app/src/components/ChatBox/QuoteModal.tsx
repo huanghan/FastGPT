@@ -82,17 +82,29 @@ export const QuoteList = React.memo(function QuoteList({
     str = str.replace(/^期刊:/gm, '**期刊**: ');
     str = str.replace(/^时间:/gm, '**发表时间**: ');
     str = str.replace(/^地址URL:/gm, '**论文链接**: ');
-    
-    return str
-  }
+
+    return str;
+  };
+  const formatMD_EN = (str: string) => {
+    str = str.replace(/^Title:/gm, '**标题**: ');
+    str = str.replace(/^Author:/gm, '**作者**: ');
+    str = str.replace(/^Keywords:/gm, '**关键词**: ');
+    str = str.replace(/^Abstract:/gm, '**摘要**: \n');
+    str = str.replace(/^Journal:/gm, '**期刊**: ');
+    str = str.replace(/^Time:/gm, '**发表时间**: ');
+    str = str.replace(/^URL:/gm, '**论文链接**: ');
+    str = str.replace(/\N/gm, '');
+
+    return str;
+  };
   return (
     <>
       {rawSearch.map((item, i) => {
         // 在这里处理 item
         const newItem = {
           ...item,
-          a: '', // 不显示答案
-          q: formatMD(item.q), // 格式化问题
+          q: formatMD_EN(item.a),
+          a: '' // 不显示英文
         };
 
         return (

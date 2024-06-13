@@ -198,11 +198,8 @@ const QuoteItem = ({
         </Flex>
 
         <Box flex={'1 0 0'}>
-          <Box color={'black'} fontFamily={'Arial'}> 
-          <Markdown
-            source={quoteItem.q}
-            showAnimation={false}
-          />  
+          <Box color={'black'} fontFamily={'Arial'}>
+            <Markdown source={quoteItem.q} showAnimation={false} />
           </Box>
           <Box color={'myGray.600'}>{quoteItem.a}</Box>
         </Box>
